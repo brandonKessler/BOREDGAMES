@@ -39,5 +39,5 @@ type game_t = {
    pieces : piece_t list;
    board : board_t;
 
-type program = string list * game_t list
+type program = (string,string) list * game_t list
 
