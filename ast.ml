@@ -34,10 +34,17 @@ type board_t = {
    cols : int;
  }
 
+type rules_t = {
+   rname : string;
+   rbody : string list;
+ }
+
 type game_t = {
    players : string list;
    pieces : piece_t list;
    board : board_t;
+   rules : rules_t list;
+ }
 
 type program = (string,string) list * game_t list
 
