@@ -16,11 +16,17 @@ type stmt =
  | If of expr * stmt * stmt
  | Loop of expr * stmt
 
+type coord_t = {
+   xc : int;
+   yc : int;
+ }
+
 type piece_t = { 
    owner : string;
    name : string;
    num : int;
    ptval : int;
+   cloc : coord_t;
  }
 
 type board_t = {
@@ -28,6 +34,10 @@ type board_t = {
    cols : int;
  }
 
+type game_t = {
+   players : string list;
+   pieces : piece_t list;
+   board : board_t;
 
-type program = string list * piece_t list
+type program = string list * game_t list
 
