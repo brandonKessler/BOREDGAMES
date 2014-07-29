@@ -24,6 +24,7 @@ program:
    /* nothing */	{[], []}
  | program vdecl	{ ($2 :: fst $1), snd $1) }
  | program setup	{ (fst $1, ($2 :: snd $1) }
+ | program rules	{ fst $1, (snd $1).rules=$2 }
 
 vdecl_list:
    /* nothing */	{ [] }
@@ -35,6 +36,10 @@ vdecl:
 setup:
    SETUP LPAREN RPAREN LBRACE bdecl pldecl_list pcdecl_list RBRACE	{ 
 		{players = List.rev $6; pieces = List.rev $7; board = $5} }
+
+rules:
+   RULES LPAREN RPAREN LBRACE rule_list RBRACE	{ $5 }
+
 
 pldecl_list:
     pldecl		{ [$1] }
@@ -58,5 +63,47 @@ pcargs:
 
 bdecl:
    BOARD LPAREN INT COMMA INT	{ {xc = $3; yc = $5} }
+
+
+
+rule_list:
+   rule			{ [$1] }
+ | rule_list rule	{ $2 :: $1 }
+
+rule:
+   RULE ID COLON stmt_list SEMI	{ {rname: $2; rbody = $4} }
+
+stmt_list:
+   /* nothing */	{ [] }
+ | stmt_list stmt	{ $2 :: $1 }
+
+stmt:
+   expr SEMI			{ Expr($1) }
+ | RETURN expr SEMI		{ Return($2) }
+ | LBRACE stmt_list RBRACE	{ Block(List.rev $2) }
+ | IF LPAREN expr RPAREN stmt %prec NOELSE	{ If($3, $5, Block([])) }
+ | IF LPAREN expr RPAREN stmt ELSE stmt		{ If($3, $5, $7) }
+ | LOOP LPAREN expr RPAREN stmt		{ Loop($3, $5) }
+
+expr:
+   LITERAL		{ LITERAL($1) }
+ | ID			{ Id($1) }
+ | expr PLUS expr	{ Binop($1, Add, $3) }
+ | expr MINUS expr	{ Binop($1, Sub, $3) }
+ | expr TIMES expr	{ Binop($1, Mult, $3) }
+ | expr DIVIDE expr	{ Binop($1, Div, $3) }
+ | expr EQ expr		{ Binop($1, Equal, $3) }
+ | expr NEQ expr	{ Binop($1, Neq, $3) }
+ | expr LT expr		{ Binop($1, Less, $3) }
+ | expr LEQ expr	{ Binop($1, Leq, $3) }
+ | expr GT expr		{ Binop($1, Greater, $3) }
+ | expr GEQ expr	{ Binop($1, Geq, $3) }
+ | ID ASSIGN expr	{ Assign($1, $3) }
+ | ID LPAREN actuals_opt RPAREN		{ Call($1, $3) }
+ | LPAREN expr RPAREN	{ $2 }
+
+expr_opt:
+   /* nothing */	{ Noexpr }
+ | expr			{ $1 }
 
 
