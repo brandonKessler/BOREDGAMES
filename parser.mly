@@ -6,7 +6,11 @@
 %token ASSIGN EQ NEQ LT LEQ GT GEQ RETURN IF ELSE LOOP EOF
 %token <int> literal
 %token <string> ID SETUP RULES PLAY
-%token <string> TYPE
+%token <bool> BOOL
+%token <float> DOUBLE
+%token <int> INT
+%token <coord_t> COORD
+%token <string> STRING
 
 %nonassoc ELSE
 %right ASSIGN
@@ -22,20 +26,20 @@
 
 program:
    /* nothing */	{[], []}
- | program vdecl	{ ($2 :: fst $1), snd $1) }
- | program setup	{ (fst $1, ($2 :: snd $1) }
+ | program vdecl	{ ($2 :: fst $1), snd $1 }
+ | program setup	{ fst $1, ($2 :: snd $1) }
  | program rules	{ fst $1, (snd $1).rules=$2 }
- | program play		{ ($2 :: fst $1), snd $1) 
+ | program play		{ ($2 :: fst $1), snd $1 } 
 
 setup:
-   SETUP LPAREN RPAREN LBRACE bdecl pldecl_list pcdecl_list RBRACE	{ 
+   SETUP LBRACE bdecl pldecl_list pcdecl_list RBRACE	{ 
 		{players = List.rev $6; pieces = List.rev $7; board = $5} }
 
 rules:
-   RULES LPAREN RPAREN LBRACE rule_list RBRACE	{ List.rev $5 }
+   RULES LBRACE rule_list RBRACE	{ List.rev $5 }
 
 play:
-   PLAY LPAREN RPAREN LBRACE vdecl_list stmt_list RBRACE	{ List.rev $5 }
+   PLAY LBRACE vdecl_list stmt_list RBRACE	{ List.rev $5 }
 
 
 
@@ -44,8 +48,14 @@ vdecl_list:
  | vdecl_list vdecl	{ $2 :: $1 }
 
 vdecl:
-   TYPE ID SEMI		{ ($1,$2) }
+   type ID SEMI		{ ($1,$2) }
 
+type:
+   INT		{ LINT($1) }
+ | DOUBLE	{ LDOUBLE($1) }
+ | STRING	{ LSTRING($1) }
+ | BOOL		{ LBOOL($1) }
+ | COORD	{ LCOORD($1) }
 
 pldecl_list:
     pldecl		{ [$1] }
@@ -93,7 +103,11 @@ stmt:
  | LOOP LPAREN expr RPAREN stmt		{ Loop($3, $5) }
 
 expr:
-   LITERAL		{ LITERAL($1) }
+   LINT			{ Lint($1) }
+ | LDOUBLE		{ Ldouble($1) }
+ | LSTRING		{ Lstring($1) }
+ | LCOORD		{ Lcoord($1) }
+ | LBOOL		{ Lbool($1) }
  | ID			{ Id($1) }
  | expr PLUS expr	{ Binop($1, Add, $3) }
  | expr MINUS expr	{ Binop($1, Sub, $3) }
