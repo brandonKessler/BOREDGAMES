@@ -2,7 +2,7 @@
 
 %{ open Ast %}
 
-%token SEMI LPAREN RPAREN LBRACE RBRACE COMMA PLUS MINUS TIMES DIVIDE
+%token SEMI LBRACK RBRACK LPAREN RPAREN LBRACE RBRACE COMMA PLUS MINUS TIMES DIVIDE
 %token ASSIGN EQ NEQ LT LEQ GT GEQ RETURN IF ELSE LOOP EOF
 %token <int> literal
 %token <string> ID SETUP RULES PLAY
@@ -25,6 +25,19 @@ program:
  | program vdecl	{ ($2 :: fst $1), snd $1) }
  | program setup	{ (fst $1, ($2 :: snd $1) }
  | program rules	{ fst $1, (snd $1).rules=$2 }
+ | program play		{ ($2 :: fst $1), snd $1) 
+
+setup:
+   SETUP LPAREN RPAREN LBRACE bdecl pldecl_list pcdecl_list RBRACE	{ 
+		{players = List.rev $6; pieces = List.rev $7; board = $5} }
+
+rules:
+   RULES LPAREN RPAREN LBRACE rule_list RBRACE	{ List.rev $5 }
+
+play:
+   PLAY LPAREN RPAREN LBRACE vdecl_list stmt_list RBRACE	{ List.rev $5 }
+
+
 
 vdecl_list:
    /* nothing */	{ [] }
@@ -32,13 +45,6 @@ vdecl_list:
 
 vdecl:
    TYPE ID SEMI		{ ($1,$2) }
-
-setup:
-   SETUP LPAREN RPAREN LBRACE bdecl pldecl_list pcdecl_list RBRACE	{ 
-		{players = List.rev $6; pieces = List.rev $7; board = $5} }
-
-rules:
-   RULES LPAREN RPAREN LBRACE rule_list RBRACE	{ $5 }
 
 
 pldecl_list:
@@ -71,7 +77,8 @@ rule_list:
  | rule_list rule	{ $2 :: $1 }
 
 rule:
-   RULE ID COLON stmt_list SEMI	{ {rname: $2; rbody = $4} }
+   RULE ID COLON vdecl_list stmt_list SEMI
+		{ {rname: $2; rlocals = List.rev $4; rbody = List.rev $5} }
 
 stmt_list:
    /* nothing */	{ [] }
