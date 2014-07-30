@@ -2,7 +2,7 @@
 
 %{ open Ast %}
 
-%token SEMI LBRACK RBRACK LPAREN RPAREN LBRACE RBRACE COMMA PLUS MINUS TIMES DIVIDE
+%token SEMI LBRACKET RBRACKET LPAREN RPAREN LBRACE RBRACE COMMA PLUS MINUS TIMES DIVIDE
 %token ASSIGN EQ NEQ LT LEQ GT GEQ RETURN IF ELSE LOOP EOF
 %token <int> literal
 %token <string> ID SETUP RULES PLAY
@@ -108,6 +108,7 @@ expr:
  | ID ASSIGN expr	{ Assign($1, $3) }
  | ID LPAREN actuals_opt RPAREN		{ Call($1, $3) }
  | LPAREN expr RPAREN	{ $2 }
+ | ID LBRACKET LITERAL RBRACKET		{ Access($1, $3) }
 
 expr_opt:
    /* nothing */	{ Noexpr }
