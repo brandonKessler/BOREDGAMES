@@ -36,6 +36,7 @@ type board_t = {
 
 type rules_t = {
    rname : string;
+   rlocals : (string,string) list;
    rbody : string list;
  }
 
