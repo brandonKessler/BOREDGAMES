@@ -41,16 +41,19 @@ type board_t = {
 
 type rules_t = {
    rname : string;
-   rlocals : (string,string) list;
+   rlocals : (string * string) list;
    rbody : string list;
  }
 
-type game_t = {
+type play_t = {
+   plocals : (string * string) list;
+   pbody : string list;
+
+type program = {
+   svars: (string * string) list;
+   board : board_t;
    players : string list;
    pieces : piece_t list;
-   board : board_t;
-   rules : rules_t list;
+   rsec : rules_t list;
+   psec : (string * string) list;
  }
-
-type program = (string,string) list * game_t list
-

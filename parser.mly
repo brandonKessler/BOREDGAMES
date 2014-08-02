@@ -25,21 +25,20 @@
 %%
 
 program:
-   /* nothing */	{[], []}
- | program vdecl	{ ($2 :: fst $1), snd $1 }
- | program setup	{ fst $1, ($2 :: snd $1) }
- | program rules	{ fst $1, (snd $1).rules=$2 }
- | program play		{ ($2 :: fst $1), snd $1 } 
+   /* nothing */	{ {svars=[]; board=_; players=[]; pieces=[]; rules=[]; pvars=[]} }
+ | program setup rules play
+     { {svars=$2.svars::$1.svars; board=$2.board; players=$2.players::$1.players; 
+        pieces=$2.pieces::$1.pieces; rsec=$3::$1.rsec; psec=$4::$1.psec} }
 
 setup:
-   SETUP LBRACE bdecl pldecl_list pcdecl_list RBRACE	{ 
-		{players = List.rev $6; pieces = List.rev $7; board = $5} }
+   SETUP LBRACE vdecl bdecl pldecl_list pcdecl_list RBRACE	
+      { {svars = List.rev $3; board = $4; players = List.rev $5; pieces = List.rev $6} }
 
 rules:
    RULES LBRACE rule_list RBRACE	{ List.rev $5 }
 
 play:
-   PLAY LBRACE vdecl_list stmt_list RBRACE	{ List.rev $5 }
+   PLAY LBRACE vdecl_list stmt_list RBRACE	{ {plocals = List.rev $3; pbody = List.rev $4} }
 
 
 
