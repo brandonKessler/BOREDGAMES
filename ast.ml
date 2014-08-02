@@ -1,5 +1,5 @@
 
-type op = Add | Sub | Mult | Div | Equal | Neq | Less | Leq | Greater | Geq | Logor | Logand
+type op = Add | Sub | Mult | Div | Equal | Neq | Less | Leq | Greater | Geq | Or | And
 
 type bg_t = Int | Float | Bool | Coord | String | Pieces | Mat
 
@@ -14,6 +14,7 @@ type expr =
  | Lmat of mat_t
  | Id of string
  | Binop of expr * op * expr
+ | Through of expr * expr
  | Assign of string * expr
  | Call of string * expr list
  | Access of expr * expr
