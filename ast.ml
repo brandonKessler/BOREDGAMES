@@ -1,17 +1,23 @@
 
-type op = Add | Sub | Mult | Div | Equal | Neq | Less | Leq | Greater | Geq
+type op = Add | Sub | Mult | Div | Equal | Neq | Less | Leq | Greater | Geq | Logor | Logand
+
+type bg_t = Int | Float | Bool | Coord | String | Pieces | Mat
+
 
 type expr = 
    Lint of int
- | Ldouble of float
+ | Lfloat of float
  | Lbool of bool
  | Lcoord of coord_t
  | Lstring of string
+ | Lpieces of pieces_t
+ | Lmat of mat_t
  | Id of string
  | Binop of expr * op * expr
  | Assign of string * expr
  | Call of string * expr list
- | Access of string * expr list
+ | Access of expr * expr
+ | Daccess of expr * Dot * expr
  | Noexpr
 
 type stmt = 
@@ -34,26 +40,26 @@ type piece_t = {
    cloc : coord_t;
  }
 
-type board_t = {
+type mat_t = {
    rows : int;
    cols : int;
  }
 
 type rules_t = {
    rname : string;
-   rlocals : (string * string) list;
-   rbody : string list;
+   rlocals : (bg_t * string) list;
+   rbody : stmt list;
  }
 
 type play_t = {
-   plocals : (string * string) list;
-   pbody : string list;
+   plocals : (bg_t * string) list;
+   pbody : stmt list;
 
 type program = {
-   svars: (string * string) list;
-   board : board_t;
+   svars: (bg_t * string) list;
+   board : mat_t;
    players : string list;
    pieces : piece_t list;
    rsec : rules_t list;
-   psec : (string * string) list;
+   psec : play_t list;
  }
