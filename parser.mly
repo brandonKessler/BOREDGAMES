@@ -47,14 +47,18 @@ vdecl_list:
  | vdecl_list vdecl	{ $2 :: $1 }
 
 vdecl:
-   type ID SEMI		{ ($1,$2) }
+   vtdec SEMI		{ ($1) }
 
-type:
-   INT		{ LINT($1) }
- | DOUBLE	{ LDOUBLE($1) }
- | STRING	{ LSTRING($1) }
- | BOOL		{ LBOOL($1) }
- | COORD	{ LCOORD($1) }
+vtdec:
+   INT var		{ (Int,$2) }
+ | FLOAT var		{ (Float,$2) }
+ | STRING var		{ (String,$2) }
+ | BOOL	var		{ (Bool,$2) }
+ | COORD var		{ (Coord,$2) }
+
+var:
+   ID			{ Id($1) }
+ | expr			{ $1 }
 
 pldecl_list:
     pldecl		{ [$1] }
