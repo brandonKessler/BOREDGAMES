@@ -18,7 +18,7 @@ type expr =
  | Assign of string * expr
  | Call of string * expr list
  | Access of expr * expr
- | Daccess of expr * Dot * expr
+ | Daccess of expr * string list
  | Noexpr
 
 type stmt = 

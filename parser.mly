@@ -2,7 +2,7 @@
 
 %{ open Ast %}
 
-%token SEMI LBRACKET RBRACKET LPAREN RPAREN LBRACE RBRACE COMMA PLUS MINUS TIMES DIVIDE
+%token SEMI LBRACKET RBRACKET LPAREN RPAREN LBRACE RBRACE COMMA PLUS MINUS TIMES DIVIDE COLON
 %token ASSIGN EQ NEQ LT LEQ GT GEQ RETURN IF ELSE LOOP EOF
 %token <int> literal
 %token <string> ID SETUP RULES PLAY
@@ -124,15 +124,22 @@ expr:
  | expr ASSIGN expr	{ Assign($1, $3) }
  | expr DOT access	{ Daccess($1, $3) }
 
- | ID LPAREN actuals_opt RPAREN		{ Call($1, $3) }
+????
+ | ID LPAREN actuals RPAREN		{ Call($1, $3) }
  | LPAREN expr RPAREN	{ $2 }
  | expr LBRACKET expr RBRACKET	{ Access($1, $3) }
+????
 
 access:
    ID LPAREN expr_opt RPAREN	{ Call($1, $3) }
- | ID DOT expr		{ 
+ | expr DOT access		{ }
+ | access_list			{ List.rev $1 }
 
-actuals_opt:
+access_list:
+   expr				{ $1 }
+ | access_list DOT expr		{ $2::$1 }
+
+actuals:
    /* nothing */		{ [] }
  | actuals_list			{ List.rev $1 }
 
