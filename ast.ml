@@ -3,6 +3,7 @@ type op = Add | Sub | Mult | Div | Equal | Neq | Less | Leq | Greater | Geq | Or
 
 type bg_t = Int | Float | Bool | Coord | String | Pieces | Mat
 
+type inc = Plus | Minus
 
 type expr = 
    Lint of int
@@ -15,6 +16,7 @@ type expr =
  | Id of string
  | Binop of expr * op * expr
  | Through of expr * expr
+ | Incr of expr * inc
  | Assign of string * expr
  | Call of string * expr list
  | Access of expr * expr

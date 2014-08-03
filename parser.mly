@@ -18,6 +18,7 @@
 %left LT GT LEQ GEQ
 %left PLUS MINUS
 %left TIMES DIVIDE
+%left MINUSMINUS PLUSPLUS 
 
 %start program
 %type <Ast.program> program
@@ -127,6 +128,8 @@ expr:
  | expr COLON expr	{ Through($1, $3) }
  | expr ASSIGN expr	{ Assign($1, $3) }
  | expr DOT access	{ Daccess($1, $3) }
+ | expr PLUSPLUS	{ Incr($1,Plus) }
+ | expr MINUSMINUS	{ Incr($1,Minus) }
 
 ????
  | ID LPAREN actuals RPAREN		{ Call($1, $3) }
