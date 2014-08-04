@@ -1,7 +1,7 @@
 
 type op = Add | Sub | Mult | Div | Equal | Neq | Less | Leq | Greater | Geq | Or | And
 
-type bg_t = Int | Float | Bool | Coord | String | Pieces | Mat
+type bg_t = Int | Float | Bool | Coord | String | Piece | Matrix
 
 type inc = Plus | Minus
 
@@ -17,7 +17,7 @@ type expr =
  | Binop of expr * op * expr
  | Through of expr * expr
  | Incr of expr * inc
- | Assign of string * expr
+ | Assign of expr * expr
  | Call of string * expr list
  | Access of expr * expr
  | Daccess of expr * string list
@@ -27,8 +27,8 @@ type stmt =
    Block of stmt list
  | Expr of expr
  | Return of expr
- | If of expr * stmt * stmt
- | Loop of expr * stmt
+ | If of expr * stmt * stmt 
+ | Loop of expr * stmt 
 
 type coord_t = {
    xc : int;
@@ -47,7 +47,9 @@ type mat_t = {
    rows : int;
    cols : int;
  }
-
+type setup_t = {
+   (* change when vars can be anywhere *) 
+}
 type rules_t = {
    rname : string;
    rlocals : (bg_t * string) list;

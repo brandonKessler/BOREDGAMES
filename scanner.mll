@@ -32,7 +32,6 @@ rule token = parse
 | "||"     { OR }
 | "if"     { IF }
 | "else"   { ELSE }
-| "elseif" { ELSEIF }
 | "loop"   { LOOP }
 | "return" { RETURN }
 | "int"    { INT }
