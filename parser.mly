@@ -56,17 +56,17 @@ vdecl:
    vtdec SEMI		{ ($1) }
 
 vtdec:
-   INT var		{ {vname=$2; vtype=Int} }
- | FLOAT var		{ {vname=$2; vtype=Float} }
- | STRING var		{ {vname=$2; vtype=String} }
- | BOOL	var		{ {vname=$2; vtype=Bool} }
- | COORD var		{ {vname=$2; vtype=Coord} }
- | PIECE var            { {vname=$2; vtype=Piece} }
- | MATRIX var           { {vname=$2; vtype=Matrix} }
+   INT var		{ Decl($1,$2) }
+ | FLOAT var		{ Decl($1,$2) }
+ | STRING var		{ Decl($1,$2) }
+ | BOOL	var		{ Decl($1,$2) }
+ | COORD var		{ Decl($1,$2) }
+ | PIECE var            { Decl($1,$2) }
+ | MATRIX var           { Decl($1,$2) }
 
 var:
    ID			{ Id($1) }
- | expr			{ $1 }
+ | ID ASSIGN expr	{ Assign($1,$3) }
 
 pldecl_list:
     pldecl		{ [$1] }
@@ -135,7 +135,7 @@ expr:
  | expr OR expr		{ Binop($1, Or, $3) }
  | expr AND expr	{ Binop($1, And, $3) }
  | expr COLON expr	{ Through($1, $3) }
- | expr ASSIGN expr	{ Assign($1, $3) }
+ | ID ASSIGN expr	{ Assign($1, $3) }
  | expr DOT expr	{ Daccess($1, $3) }
  | expr PLUSPLUS	{ Incr($1,Plus) }
  | expr MINUSMINUS	{ Incr($1,Minus) }

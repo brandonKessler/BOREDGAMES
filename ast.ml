@@ -29,11 +29,7 @@ type stmt =
  | Return of expr
  | If of expr * stmt * stmt 
  | Loop of expr * stmt 
-
-type vardec_t = {
-   vname : string;
-   vtype : bg_t;
-}
+ | Decl of bg_t * expr
 
 type coord_t = {
    xc : int;
