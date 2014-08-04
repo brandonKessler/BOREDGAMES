@@ -56,13 +56,14 @@ vdecl:
    vtdec SEMI		{ ($1) }
 
 vtdec:
-   INT var		{ (Int,$2) }
- | FLOAT var		{ (Float,$2) }
- | STRING var		{ (String,$2) }
- | BOOL	var		{ (Bool,$2) }
- | COORD var		{ (Coord,$2) }
- | PIECE var            { (Piece, $2) }
- | MATRIX var           { (Matrix, $2) }
+   INT var		{ {vname=$2; vtype=Int} }
+ | FLOAT var		{ {vname=$2; vtype=Float} }
+ | STRING var		{ {vname=$2; vtype=String} }
+ | BOOL	var		{ {vname=$2; vtype=Bool} }
+ | COORD var		{ {vname=$2; vtype=Coord} }
+ | PIECE var            { {vname=$2; vtype=Piece} }
+ | MATRIX var           { {vname=$2; vtype=Matrix} }
+
 var:
    ID			{ Id($1) }
  | expr			{ $1 }

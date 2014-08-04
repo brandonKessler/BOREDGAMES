@@ -30,6 +30,11 @@ type stmt =
  | If of expr * stmt * stmt 
  | Loop of expr * stmt 
 
+type vardec_t = {
+   vname : string;
+   vtype : bg_t;
+}
+
 type coord_t = {
    xc : int;
    yc : int;
@@ -52,16 +57,16 @@ type setup_t = {
 }
 type rules_t = {
    rname : string;
-   rlocals : (bg_t * string) list;
+   rlocals : vardec_t list;
    rbody : stmt list;
  }
 
 type play_t = {
-   plocals : (bg_t * string) list;
+   plocals : vardec_t list;
    pbody : stmt list;
 
 type program = {
-   svars: (bg_t * string) list;
+   svars: vardec_t list;
    board : mat_t;
    players : string list;
    pieces : piece_t list;
