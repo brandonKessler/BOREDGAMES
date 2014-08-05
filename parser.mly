@@ -79,8 +79,11 @@ pcdecl_list:
    pcdecl		{ [$1] }
  | pcdecl_list pcdecl	{ $2 :: $1 }
 
+
+(* moved to stmt *)
 pcdecl:
    PIECES LPAREN pcargs RPAREN SEMI	{ $3 } 
+(* moved to stmt *)
 
 pcargs:
    expr COMMA expr COMMA expr		
@@ -88,8 +91,10 @@ pcargs:
  | expr COMMA expr COMMA expr COMMA expr	
 		{ {owner = $1; name = $3; num = $5; ptval = $7; cloc = {xc=0; yc=0}} }
 
+(* moved to stmt *)
 bdecl:
    BOARD LPAREN INT COMMA INT RPAREN SEMI 	{ {xc = $3; yc = $5} }
+(* moved to stmt *)
 
 
 
@@ -114,6 +119,9 @@ stmt:
  NOELSE ? *)
  | IF LPAREN expr RPAREN stmt ELSE stmt		{ If($3, $5, $7) }
  | LOOP LPAREN expr RPAREN stmt		{ Loop($3, $5) }
+ | BOARD LPAREN INT COMMA INT RPAREN SEMI 	{ Set(Brd,[{xc = $3; yc = $5}]) }
+ | PIECES LPAREN pcargs RPAREN SEMI		{ Set(Pcs, [List.rev $3]) }
+
 
 expr:
    INTLITERAL		{ Lint($1) }

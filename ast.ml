@@ -4,6 +4,7 @@ type op = Add | Sub | Mult | Div | Equal | Neq | Less | Leq | Greater | Geq | Or
 type bg_t = Int | Float | Bool | Coord | String | Piece | Matrix
 
 type inc = Plus | Minus
+type gmpc = Brd | Plr | Pcs
 
 type expr = 
    Lint of int
@@ -30,6 +31,9 @@ type stmt =
  | If of expr * stmt * stmt 
  | Loop of expr * stmt 
  | Decl of bg_t * expr
+
+ | Set of gmpc * bg_t list
+
 
 type coord_t = {
    xc : int;
