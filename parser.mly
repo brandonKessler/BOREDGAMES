@@ -4,13 +4,14 @@
 
 %token SEMI LBRACKET RBRACKET LPAREN RPAREN LBRACE RBRACE COMMA PLUS MINUS TIMES DIVIDE COLON
 %token ASSIGN EQ NEQ LT LEQ GT GEQ RETURN IF ELSE LOOP EOF
-%token <int> literal
+%token INT BOOL FLOAT STRING COORD BOARD RULE PIECES PLAYER MATRIX PIECE
+%token <int> INTLITERAL
 %token <string> ID SETUP RULES PLAY
-%token <bool> BOOL
-%token <float> DOUBLE
-%token <int> INT
-%token <coord_t> COORD
-%token <string> STRING
+%token <bool> BOOL BOOLLITERAL
+%token <float> FLOATLITERAL
+%token <coord_t> COORDLITERAL
+%token <string> STRINGLITERAL
+
 
 %nonassoc NOELSE
 %nonassoc ELSE
@@ -23,6 +24,7 @@
 %right NOT
 %left MINUSMINUS PLUSPLUS 
 %left DOT
+%nonassoc COLON /* is this right */
 %nonassoc LPAREN RPAREN RBRACKET LBRACKET
 
 %start program
@@ -39,13 +41,12 @@ program:
 setup:
    SETUP LBRACE vdecl bdecl pldecl_list pcdecl_list RBRACE	
       { {svars = List.rev $3; board = $4; players = List.rev $5; pieces = List.rev $6} }
-(* vars at top of sections ? *)
 rules:
    RULES LBRACE rule_list RBRACE	{ List.rev $3 } 
 
 play:
    PLAY LBRACE vdecl_list stmt_list RBRACE	{ {plocals = List.rev $3; pbody
-   = List.rev $4} } (* variables at top of sections? *)
+   = List.rev $4} } 
 
 
 vdecl_list:
@@ -56,13 +57,13 @@ vdecl:
    vtdec SEMI		{ ($1) }
 
 vtdec:
-   INT var		{ Decl($1,$2) }
- | FLOAT var		{ Decl($1,$2) }
- | STRING var		{ Decl($1,$2) }
- | BOOL	var		{ Decl($1,$2) }
- | COORD var		{ Decl($1,$2) }
- | PIECE var            { Decl($1,$2) }
- | MATRIX var           { Decl($1,$2) }
+   INT var		{ Decl(INT,$2) }
+ | FLOAT var		{ Decl(FLOAT,$2) }
+ | STRING var		{ Decl(STRING,$2) }
+ | BOOL	var		{ Decl(BOOL,$2) }
+ | COORD var		{ Decl(COORD,$2) }
+ | PIECE var            { Decl(PIECE,$2) }
+ | MATRIX var           { Decl(MATRIX,$2) }
 
 var:
    ID			{ Id($1) }
@@ -80,10 +81,10 @@ pcdecl_list:
  | pcdecl_list pcdecl	{ $2 :: $1 }
 
 
-(* moved to stmt *)
+
 pcdecl:
    PIECES LPAREN pcargs RPAREN SEMI	{ $3 } 
-(* moved to stmt *)
+
 
 pcargs:
    expr COMMA expr COMMA expr		
@@ -91,10 +92,10 @@ pcargs:
  | expr COMMA expr COMMA expr COMMA expr	
 		{ {owner = $1; name = $3; num = $5; ptval = $7; cloc = {xc=0; yc=0}} }
 
-(* moved to stmt *)
+
 bdecl:
-   BOARD LPAREN INT COMMA INT RPAREN SEMI 	{ {xc = $3; yc = $5} }
-(* moved to stmt *)
+   BOARD LPAREN INTLITERAL COMMA INTLITERAL RPAREN SEMI 	{ {xc = $3; yc = $5} }
+
 
 
 
@@ -103,8 +104,7 @@ rule_list:
  | rule_list rule	{ $2 :: $1 }
 
 rule:
-   RULE ID COLON vdecl_list stmt_list SEMI (* rules vars before
-   stmts ?? *)
+   RULE ID COLON vdecl_list stmt_list SEMI
 		{ {rname: $2; rlocals = List.rev $4; rbody = List.rev $5} }
 
 stmt_list:
@@ -115,17 +115,16 @@ stmt:
    expr SEMI			{ Expr($1) }
  | RETURN expr SEMI		{ Return($2) }
  | LBRACE stmt_list RBRACE	{ Block(List.rev $2) }
- | IF LPAREN expr RPAREN stmt %prec NOELSE	{ If($3, $5, Block([])) } (*
- NOELSE ? *)
+ | IF LPAREN expr RPAREN stmt %prec NOELSE	{ If($3, $5, Block([])) } 
  | IF LPAREN expr RPAREN stmt ELSE stmt		{ If($3, $5, $7) }
  | LOOP LPAREN expr RPAREN stmt		{ Loop($3, $5) }
- | BOARD LPAREN INT COMMA INT RPAREN SEMI 	{ Set(Brd,[{xc = $3; yc = $5}]) }
+ | BOARD LPAREN INTLITERAL COMMA INTLITERAL RPAREN SEMI 	{ Set(Brd,[{xc = $3; yc = $5}]) }
  | PIECES LPAREN pcargs RPAREN SEMI		{ Set(Pcs, [List.rev $3]) }
 
 
 expr:
    INTLITERAL		{ Lint($1) }
- | DOUBLELITERAL	{ Ldouble($1) }
+ | FLOATLITERAL 	{ Lfloat($1) }
  | STRINGLITERAL	{ Lstring($1) }
  | COORDLITERAL		{ Lcoord($1) }
  | BOOLLITERAL		{ Lbool($1) }
@@ -147,22 +146,10 @@ expr:
  | expr DOT expr	{ Daccess($1, $3) }
  | expr PLUSPLUS	{ Incr($1,Plus) }
  | expr MINUSMINUS	{ Incr($1,Minus) }
-
-(*????*)
  | ID LPAREN actuals RPAREN		{ Call($1, $3) }
  | LPAREN expr RPAREN	{ $2 }
  | ID LBRACKET expr RBRACKET	{ Access($1, $3) }
-(*????*)
- (*
-access:
-   ID LPAREN expr_opt RPAREN	{ Call($1, $3) }
- | expr DOT access		{ }
- | access_list			{ List.rev $1 }
 
-access_list: (* ? *)
-   expr				{ $1 }
- | access_list DOT expr		{ $2::$1 }
-*)
 actuals:
    /* nothing */		{ [] }
  | actuals_list			{ List.rev $1 }

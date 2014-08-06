@@ -36,7 +36,7 @@ rule token = parse
 | "return" { RETURN }
 | "int"    { INT }
 | "bool"   { BOOL }
-| "double" { DOUBLE }
+| "double" { FLOAT }
 | "coord"  { COORD }
 | "Matrix" { MATRIX }
 | "piece"  { PIECE }
@@ -51,7 +51,7 @@ rule token = parse
 | "Dice" { DICE }
 | ('-')? ['0'-'9']+ as lxm { INTLITERAL(int_of_string lxm) }
 | ("true" | "false") as lxm { BOOLLITERAL(bool_of_string lxm) }
-| ('-')? (['0'-'9'])+ '.' (['0' - '9'])* as lxm { DOUBLELITERAL(float_of_string lxm) }
+| ('-')? (['0'-'9'])+ '.' (['0' - '9'])* as lxm { FLOATLITERAL(float_of_string lxm) }
 | '"' [^'"']* '"'  as lxm  { STRINGLITERAL(lxm) } (* check for correctness *)
 | '(' ['0'-'9']+ ',' ['0'-'9']+ ')' as lxm { COORDLITERAL(lxm) }
 | ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']* as lxm { ID(lxm) }
