@@ -22,6 +22,7 @@ type expr =
  | Call of string * expr list
  | Access of expr * expr
  | Daccess of expr * string list
+ | Cast of bg_t * expr
  | Noexpr
 
 type stmt = 

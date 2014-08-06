@@ -46,9 +46,9 @@ play:
 
 (* ~~~~~VARIABLE SECTION~~~~~ *)
 var_dec:
-   vtdec SEMI		{ ($1) }
+   vtdec var SEMI		{ ($1,$2) }
 
-vdecl:
+vtec:
    INT var		{ Decl($1,$2) }
  | FLOAT var		{ Decl($1,$2) }
  | STRING var		{ Decl($1,$2) }
@@ -64,6 +64,15 @@ vdecl:
  | COORD var		{ (Coord,$2) }
  | PIECE var            { (Piece,$2) }
  | MATRIX var           { (Mat,$2) }
+
+   INT			{ Int }
+ | FLOAT		{ Float }
+ | STRING		{ String }
+ | BOOL			{ Bool }
+ | COORD		{ Coord }
+ | PIECE		{ Piece }
+ | MATRIX		{ Mat }
+
 
 var:
    ID			{ Id($1) }
@@ -159,6 +168,7 @@ expr:
  | ID LPAREN actuals RPAREN				{ Call($1, $3) }
  | LPAREN expr RPAREN					{ $2 }
 (*????*)
+ | LPAREN vtdec RPAREN expr				{ Cast($2,$4) }
 
 
 
