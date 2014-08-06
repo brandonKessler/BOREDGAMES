@@ -7,7 +7,7 @@
 %token INT BOOL FLOAT STRING COORD BOARD RULE PIECES PLAYER MATRIX PIECE
 %token <int> INTLITERAL
 %token <string> ID SETUP RULES PLAY
-%token <bool> BOOL BOOLLITERAL
+%token <bool> BOOLLITERAL
 %token <float> FLOATLITERAL
 %token <coord_t> COORDLITERAL
 %token <string> STRINGLITERAL
