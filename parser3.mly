@@ -4,14 +4,13 @@
 
 %token SEMI LBRACKET RBRACKET LPAREN RPAREN LBRACE RBRACE COMMA PLUS MINUS TIMES DIVIDE COLON
 %token ASSIGN EQ NEQ LT LEQ GT GEQ RETURN IF ELSE LOOP EOF
-%token INT BOOL FLOAT STRING COORD BOARD RULE PIECES PLAYER MATRIX PIECE
-%token <int> INTLITERAL
+%token <int> literal
 %token <string> ID SETUP RULES PLAY
-%token <bool> BOOL BOOLLITERAL
-%token <float> FLOATLITERAL
-%token <coord_t> COORDLITERAL
-%token <string> STRINGLITERAL
-
+%token <bool> BOOL
+%token <float> DOUBLE
+%token <int> INT
+%token <coord_t> COORD
+%token <string> STRING
 
 %nonassoc NOELSE
 %nonassoc ELSE
@@ -24,9 +23,7 @@
 %right NOT
 %left MINUSMINUS PLUSPLUS 
 %left DOT
-%nonassoc COLON /* is this right */
 %nonassoc LPAREN RPAREN RBRACKET LBRACKET
-
 
 %start program
 %type <Ast.program> program
@@ -49,9 +46,17 @@ play:
 
 (* ~~~~~VARIABLE SECTION~~~~~ *)
 var_dec:
-   vdecl SEMI		{ ($1,$2) }
+   vtdec var SEMI		{ ($1,$2) }
 
-vdecl:
+vtec:
+   INT var		{ Decl($1,$2) }
+ | FLOAT var		{ Decl($1,$2) }
+ | STRING var		{ Decl($1,$2) }
+ | BOOL	var		{ Decl($1,$2) }
+ | COORD var		{ Decl($1,$2) }
+ | PIECE var            { Decl($1,$2) }
+ | MATRIX var           { Decl($1,$2) }
+
    INT var		{ (Int,$2) }
  | FLOAT var		{ (Float,$2) }
  | STRING var		{ (String,$2) }
@@ -59,6 +64,15 @@ vdecl:
  | COORD var		{ (Coord,$2) }
  | PIECE var            { (Piece,$2) }
  | MATRIX var           { (Mat,$2) }
+
+   INT			{ Int }
+ | FLOAT		{ Float }
+ | STRING		{ String }
+ | BOOL			{ Bool }
+ | COORD		{ Coord }
+ | PIECE		{ Piece }
+ | MATRIX		{ Mat }
+
 
 var:
    ID			{ Id($1) }
