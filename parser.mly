@@ -57,13 +57,13 @@ vdecl:
    vtdec SEMI		{ ($1) }
 
 vtdec:
-   INT var		{ Decl(INT,$2) }
- | FLOAT var		{ Decl(FLOAT,$2) }
- | STRING var		{ Decl(STRING,$2) }
- | BOOL	var		{ Decl(BOOL,$2) }
- | COORD var		{ Decl(COORD,$2) }
- | PIECE var            { Decl(PIECE,$2) }
- | MATRIX var           { Decl(MATRIX,$2) }
+   INT var		{ Decl(Int,$2) }
+ | FLOAT var		{ Decl(Float,$2) }
+ | STRING var		{ Decl(String,$2) }
+ | BOOL	var		{ Decl(Bool,$2) }
+ | COORD var		{ Decl(Coord,$2) }
+ | PIECE var            { Decl(Piece,$2) }
+ | MATRIX var           { Decl(Matrix,$2) }
 
 var:
    ID			{ Id($1) }
