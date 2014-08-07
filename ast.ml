@@ -34,8 +34,6 @@ type expr =
  | Lfloat of float
  | Lbool of bool
  | Lstring of string
- | Lpieces of piece_t
- | Lmat of mat_t
  | Id of string
  | Binop of expr * op * expr
  | Through of expr * expr
@@ -68,4 +66,68 @@ type rules_t = {
 
 type program = setup_dec list * rules_t list * stmt list
 
+
+let rec string_of_expr = function
+   Lint(l) -> string_of_int l
+ | Lfloat(f) -> string_of_float f
+ | Lbool(b) -> string_of_bool b
+ | Lstring(st) -> st
+ | Id(s)
+ | Binop(e1, o, e2) ->
+	string_of_expr e1 ^ " " ^
+	(match o with
+	  Add -> "+" | Sub -> "-" | Mult -> "*" | Div -> "/"
+	| Equal -> "==" | Neq -> "!="
+        | Less -> "<" | Leq -> "<=" | Greater -> ">" | Geq -> ">="
+	| Or -> "||" | And -> "&&") ^ " " ^
+      string_of_expr e2
+ | Through(e1,e2) ->
+	string_of_expr e1 ^ ":" ^ string_of_expr e2
+ | Incr(e,i) -> 
+	string_of_expr e ^ 
+	(match i with
+	  Plus -> "++" | Minus -> "--") 
+ | Assign(v,e) -> v ^ " = " ^ string_of_expr e
+ | Call(f,el) ->
+	f ^ "(" ^ String.concat ", " (List.map string_of_expr el) ^ ")"
+ | Access(e1,e2) ->
+	string_of_expr e1 ^ "[" ^ string_of_expr e2 ^ "]"
+ | Baccess(e,c) -> 
+	string_of_expr e ^ "[(" ^ string_of_int c.xc ^ "," 
+	^ string_of_int c.yc ^ ")]"
+ | Daccess(e1,e2) ->
+	string_of_expr e1 ^ "." ^ string_of_expr e2
+ | Noexpr -> ""
+
+
+let rec string_of_stmt = function
+   Block(stmts) ->
+	"{\n" ^ String.concat "" (List.map string_of_stmt stmts) ^ "}\n"
+ | Expr(expr) -> string_of_expr expr ^ ";\n";
+ | Return(expr) -> "return " ^ string_of_expr expr ^ ";\n";
+ | If(e, s, Block([])) -> "if (" ^ string_of_expr e ^ ")\n" ^ string_of_stmt s
+ | If(e, s1, s2) ->  "if (" ^ string_of_expr e ^ ")\n" ^
+      string_of_stmt s1 ^ "else\n" ^ string_of_stmt s2
+ | Loop(e, s) -> "loop (" ^ string_of_expr e ^ ") " ^ string_of_stmt s
+ | Decl(bg,e) ->
+	(match bg with
+	  Int -> "int" | Float -> "float" | Bool -> "bool" 
+	| Coord -> "coord" | String -> "string"
+	| Piece -> "piece" | Matrix -> "matrix") ^ " " ^
+	string_of_expr e
+
+let string_of_setup = function
+   Setbd(m) -> "Board(" ^ string_of_int m.rows ^ "," ^ string_of_ing m.cols ^ ")\n"
+  | Setpc(pc) -> "Pieces(" ^ pc.owner ^ ", " ^ pc.name ^ ", " ^ 
+	string_of_int pc.num ^ ", (" ^ string_of_int pc.cloc.xc ^ "," ^
+	string_of_int pc.cloc.yc ^ "))\n" 
+ | Setplr(plr) -> "Player(" ^ plr.plrname ^ ")\n"
+ | Stmt(s) -> string_of_stmt s ^ "\n"
+
+let string_of_rules r = "rule " ^ r.rname ^ ": " ^ string_of_stmt r.rbody ^ "\n"
+
+let string_of_program (su,r,st) = 
+   "Setup {\n" ^ String.concat "" (List.map string_of_setup su) ^ "}\n" ^ 
+   "Rules {\n" ^ String.concat "" (List.map string_of_rules r) ^ "}\n" ^
+   "Play {\n" ^ String.concat "\n" (List.map string_of_stmt st) ^ "}\n"
 
