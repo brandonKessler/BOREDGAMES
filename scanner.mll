@@ -53,7 +53,6 @@ rule token = parse
 | ("true" | "false") as lxm { BOOLLITERAL(bool_of_string lxm) }
 | ('-')? (['0'-'9'])+ '.' (['0' - '9'])* as lxm { FLOATLITERAL(float_of_string lxm) }
 | '"' [^'"']* '"'  as lxm  { STRINGLITERAL(lxm) } (* check for correctness *)
-| '(' ['0'-'9']+ ',' ['0'-'9']+ ')' as lxm { COORDLITERAL(lxm) }
 | ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']* as lxm { ID(lxm) }
 | eof { EOF }
 | _ as char { raise (Failure("illegal character " ^ Char.escaped char)) }
@@ -61,3 +60,5 @@ rule token = parse
 and comment = parse
   "*/" { token lexbuf }
 | _    { comment lexbuf }
+
+
