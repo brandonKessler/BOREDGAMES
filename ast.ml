@@ -72,7 +72,7 @@ let rec string_of_expr = function
  | Lfloat(f) -> string_of_float f
  | Lbool(b) -> string_of_bool b
  | Lstring(st) -> st
- | Id(s)
+ | Id(s) -> s
  | Binop(e1, o, e2) ->
 	string_of_expr e1 ^ " " ^
 	(match o with
@@ -117,14 +117,15 @@ let rec string_of_stmt = function
 	string_of_expr e
 
 let string_of_setup = function
-   Setbd(m) -> "Board(" ^ string_of_int m.rows ^ "," ^ string_of_ing m.cols ^ ")\n"
+   Setbd(m) -> "Board(" ^ string_of_int m.rows ^ "," ^ string_of_int m.cols ^ ")\n"
   | Setpc(pc) -> "Pieces(" ^ pc.owner ^ ", " ^ pc.name ^ ", " ^ 
 	string_of_int pc.num ^ ", (" ^ string_of_int pc.cloc.xc ^ "," ^
 	string_of_int pc.cloc.yc ^ "))\n" 
  | Setplr(plr) -> "Player(" ^ plr.plrname ^ ")\n"
  | Stmt(s) -> string_of_stmt s ^ "\n"
 
-let string_of_rules r = "rule " ^ r.rname ^ ": " ^ string_of_stmt r.rbody ^ "\n"
+let string_of_rules r = "rule " ^ r.rname ^ ": " ^ String.concat "" 
+	(List.map string_of_stmt r.rbody) ^ "\n"
 
 let string_of_program (su,r,st) = 
    "Setup {\n" ^ String.concat "" (List.map string_of_setup su) ^ "}\n" ^ 
