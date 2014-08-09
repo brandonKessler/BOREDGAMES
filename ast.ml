@@ -117,11 +117,11 @@ let rec string_of_stmt = function
 	string_of_expr e
 
 let string_of_setup = function
-   Setbd(m) -> "Board(" ^ string_of_int m.rows ^ "," ^ string_of_int m.cols ^ ")\n"
-  | Setpc(pc) -> "Pieces(" ^ pc.owner ^ ", " ^ pc.name ^ ", " ^ 
+   Setbd(m) -> "new Board(" ^ string_of_int m.rows ^ "," ^ string_of_int m.cols ^ ")\n"
+  | Setpc(pc) -> "new Pieces(" ^ pc.owner ^ ", " ^ pc.name ^ ", " ^ 
 	string_of_int pc.num ^ ", (" ^ string_of_int pc.cloc.xc ^ "," ^
 	string_of_int pc.cloc.yc ^ "))\n" 
- | Setplr(plr) -> "Player(" ^ plr.plrname ^ ")\n"
+ | Setplr(plr) -> "new Player(" ^ plr.plrname ^ ")\n"
  | Stmt(s) -> string_of_stmt s ^ "\n"
 
 let string_of_rules r = "rule " ^ r.rname ^ ": " ^ String.concat "" 

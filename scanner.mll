@@ -40,9 +40,9 @@ rule token = parse
 | "coord"  { COORD }
 | "Matrix" { MATRIX }
 | "piece"  { PIECE }
-| "Board"  { BOARD }
-| "Player" { PLAYER }
-| "Pieces" { PIECES }
+| "new Board"  { BOARD }
+| "new Player" { PLAYER }
+| "new Pieces" { PIECES }
 | "Setup"  { SETUP }
 | "Rules"  { RULES }
 | "rule"   { RULE }
