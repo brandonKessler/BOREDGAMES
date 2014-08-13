@@ -2,7 +2,8 @@
 
 type op = Add | Sub | Mult | Div | Equal | Neq | Less | Leq | Greater | Geq | Or | And
 
-type bg_t = Int | Float | Bool | Coord | String | Piece | Matrix
+type bg_t = Int | Float | Bool | Coord | String | Piece | Matrix | Player | Tile
+| Rule
 
 type inc = Plus | Minus
  
@@ -39,7 +40,7 @@ type expr =
  | Through of expr * expr
  | Incr of expr * inc
  | Assign of string * expr
- | Call of string * expr list
+ | Call of expr * expr list
  | Access of expr * expr
  | Baccess of expr * coord_t
  | Daccess of expr * expr
@@ -52,7 +53,7 @@ type stmt =
  | If of expr * stmt * stmt 
  | Loop of expr * stmt 
  | Decl of bg_t * expr
-
+ | NextPlayer
 type setup_dec = 
    Setbd of mat_t
  | Setpc of piece_t
@@ -89,7 +90,7 @@ let rec string_of_expr = function
 	  Plus -> "++" | Minus -> "--") 
  | Assign(v,e) -> v ^ " = " ^ string_of_expr e
  | Call(f,el) ->
-	f ^ "(" ^ String.concat ", " (List.map string_of_expr el) ^ ")"
+	string_of_expr f ^ "(" ^ String.concat ", " (List.map string_of_expr el) ^ ")"
  | Access(e1,e2) ->
 	string_of_expr e1 ^ "[" ^ string_of_expr e2 ^ "]"
  | Baccess(e,c) -> 
@@ -113,9 +114,10 @@ let rec string_of_stmt = function
 	(match bg with
 	  Int -> "int" | Float -> "float" | Bool -> "bool" 
 	| Coord -> "coord" | String -> "string"
-	| Piece -> "piece" | Matrix -> "matrix") ^ " " ^
+	| Piece -> "piece" | Matrix -> "matrix" | Player -> "player" | Tile ->
+                        "tile" | Rule -> "rule") ^ " " ^
 	string_of_expr e
-
+ | NextPlayer -> "NextPlayer"
 let string_of_setup = function
    Setbd(m) -> "new Board(" ^ string_of_int m.rows ^ "," ^ string_of_int m.cols ^ ")\n"
   | Setpc(pc) -> "new Pieces(" ^ pc.owner ^ ", " ^ pc.name ^ ", " ^ 

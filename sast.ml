@@ -1,31 +1,62 @@
 open Ast
+type overallTypes = Players | Pieces
+type scope = Global 
+             | Local
+type datatype = 
+     Datatype of Ast.bg_t
+type scoord_t = {
+   sxc : int;
+   syc : int;
+} 
+type splayer_t = {
+   splrname : string;
+}
+type spiece_t = { 
+   sowner : string;
+   sname : string;
+   snum : int;
+   sptval : int;
+   scloc : scoord_t;
+}
+type smat_t = {
+   srows : int;
+   scols : int;
+}
+type sexpr = 
+   SLint of int * datatype
+ | SLfloat of float * datatype
+ | SLbool of bool * datatype
+ | SLstring of string * datatype
+ | SId of string * scope * datatype
+ | SBinop of sexpr * op * sexpr * datatype
+ | SThrough of sexpr * sexpr * datatype
+ | SIncr of sexpr * Ast.inc * datatype
+ | SAssign of string * sexpr * scope * datatype
+ | SCall of expr * sexpr list * scope * datatype
+ | SAccess of sexpr * sexpr * datatype
+ | SBaccess of sexpr * scoord_t * datatype
+ | SDaccess of sexpr * sexpr * datatype
+ | SNoexpr
 
-module StringMap = Map.Make(String)
+ type sstmt = 
+   SBlock of sstmt list
+ | SExpr of sexpr
+ | SReturn of sexpr
+ | SIf of sexpr * sstmt * sstmt 
+ | SLoop of sexpr * sstmt 
+ | SDecl of datatype * sexpr * scope
+ | SNextPlayer
+ type ssetup_dec = 
+   SSetbd of smat_t
+ | SSetpc of spiece_t 
+ | SSetplr of splayer_t 
+ | SStmt of sstmt
 
-type expr_s = 
-   Lint_s of int * bg_t list
- | Lfloat_s of float * bg_t list
- | Lbool_s of bool * bg_t list
- | Lcoord_s of coord_t * bg_t list
- | Lstring_s of string * bg_t list
- | Lpieces_s of pieces_t * bg_t list
- | Lmat_s of mat_t * bg_t list
- | Id_s of string * bg_t list
- | Binop_s of expr_s * op * expr_s * bg_t list
- | Through_s of expr_s * expr_s * bg_t list
- | Incr_s of expr_s * inc * bg_t list
- | Assign_s of string * expr_s * bg_t list
- | Call_s of string * expr_s list * bg_t list
- | Access_s of expr_s * expr_s * bg_t list
- | Daccess_s of expr_s * string list * bg_t list
- | Noexpr_s of bg_t list
-
-type stmt_s = 
-   Block_s of stmt_s list
- | Expr_s of expr_s
- | Return_s of expr_s
- | If_s of expr_s * stmt_s * stmt_s
- | Loop_s of expr_s * stmt_s
-
-
-
+ type srules_t = {
+   srname : string;
+   srbody : sstmt list;
+ }
+ type srules_decl =
+         SRules_Decl of srules_t * datatype
+ type sprogram = 
+         Prog of ssetup_dec list * srules_decl list * sstmt list

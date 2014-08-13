@@ -110,7 +110,7 @@ stmt:
  | IF LPAREN expr RPAREN stmt ELSE stmt		{ If($3, $5, $7) }
  | LOOP LPAREN expr RPAREN stmt		{ Loop($3, $5) }
  | var_dec					{ Decl(fst $1, snd $1) }
-
+ | NEXTPLAYER SEMI        {NextPlayer}
 
 expr:
    INTLITERAL		{ Lint($1) }
@@ -135,7 +135,7 @@ expr:
  | expr DOT expr	{ Daccess($1, $3) }
  | expr PLUSPLUS	{ Incr($1,Plus) }
  | expr MINUSMINUS	{ Incr($1,Minus) }
- | ID LPAREN actuals RPAREN		{ Call($1, $3) }
+ | expr LPAREN actuals RPAREN		{ Call($1, $3) }
  | LPAREN expr RPAREN	{ $2 }
  | expr LBRACKET expr RBRACKET	{ Access($1, $3) }
  | expr LBRACKET LPAREN INTLITERAL COMMA INTLITERAL RPAREN RBRACKET	{ Baccess($1,{xc=$4;yc=$6}) }
@@ -148,5 +148,6 @@ actuals:
 actuals_list:
    expr				{ [$1] }
  | actuals_list COMMA expr	{ $3::$1 }
+
 
 
