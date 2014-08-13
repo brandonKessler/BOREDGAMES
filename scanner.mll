@@ -36,6 +36,7 @@ rule token = parse
 | "return" { RETURN }
 | "int"    { INT }
 | "bool"   { BOOL }
+| "string" { STRING }
 | "double" { FLOAT }
 | "coord"  { COORD }
 | "Matrix" { MATRIX }

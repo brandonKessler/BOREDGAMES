@@ -451,6 +451,9 @@ let check_program program =
         let (typed_setup, new_env) = get_ssetup_decl_list env setup in (* should
         check setup section completely *)
         let env2 = empty_environment in
+        let env2 = add_to_global_table env2 "Board" (Datatype(Tile)) None in
+        let env2 = add_to_global_table env2 "Player" (Datatype(Player)) None in
+        let env2 = add_to_global_table env2 "Pieces" (Datatype(Piece)) None in
         let new_env2 = get_rules_names env2 rules in (* should add rules to 
         global table in the env*)
         let (typed_play, new_env3) =  get_sstmt_list new_env2 play in (* should
