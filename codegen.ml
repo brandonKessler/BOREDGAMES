@@ -15,7 +15,6 @@ let rec jexpr = function
  | SBinop(e1, o, e2, d) ->
 	(match d with
 	Datatype(Piece) -> jexpr e1 ^ ".equals(" ^ jexpr e2 ^ ")"
-	| Datatype(Coord) -> jexpr e1 ^ ".equals(" ^ jexpr e2 ^ ")"
 	| Datatype(String) -> jexpr e1 ^ ".equals(" ^ jexpr e2 ^ ")" 
 	| _ -> jexpr e1 ^ " " ^
 		(match o with
@@ -128,79 +127,95 @@ and boardAccess x y right =
 	| SCall(func, args,scope,d) -> boardFunction x y func args
 	| SDaccess(lftexpr, rtexpr,d) -> 
 		(match lftexpr with
-		SAccess(keyword,pos,d) -> boardAccessDot x y keyword string_of_int pos rtexpr
+		SAccess(keyword,pos,d) -> boardAccessDot x y keyword pos rtexpr
 		| SCall(func, args,scope,d) -> boardFunctionDot x y func args rtexpr 
 		| _ -> "Invalid Board Access")
 	| _ -> "Invalid Board Argument" )
 
 
 and boardFunctionDot x y func args rtexpr = 
-	(match SId(func,d) with
+	(match Ast.string_of_expr func with
 	"Pieces" -> boardFunctionPieces x y args ^ 
 		(match rtexpr with
-		SCall(func, args,scope,d) -> (match SId(func,d) with
+		SCall(func, args,scope,d) -> (match Ast.string_of_expr func with
 			"owner" -> ".owner"
 			| "name" -> ".name"
 			| "point" -> ".val"
-			| "location" -> ".loc"
+			| "locationx" -> ".loc.x"
+			| "locationy" -> ".loc.y"
+			| _ -> "Invalid Pieces field")
+		| _ -> "Invalid Pieces Access")
+	| _ -> "Invalid Board Access Function")
+	
+and boardAccessDot x y key pos rtexpr = 
+	(match jexpr key with
+	"Pieces" -> boardAccessLoc x y key pos ^ 
+		(match rtexpr with
+		SCall(func, args,scope,d) -> (match Ast.string_of_expr func with
+			"owner" -> ".owner"
+			| "name" -> ".name"
+			| "point" -> ".val"
+			| "locationx" -> ".loc.x"
+			| "locationy" -> ".loc.y"
 			| _ -> "Invalid Pieces field")
 		| _ -> "Invalid Pieces Access")
 	| _ -> "Invalid Board Access Function")
 	
 
-
 and boardFunctionPieces x y args = 
 	(match args with
-	[pc_n] -> "PCS.get( Crd_Pcn(PCS," ^ x ^ "," ^ y ^ "," ^ SId(pc_n,d) ^") )"
-	| [pl_n; pc_n] -> "PCS.get( Crd_Plr_Pcn(PCS," ^ x ^ "," ^ y ^ "," ^ SId(pl_n,d) ^ 
-		"," ^ SId(pc_n,d) ^") )"
+	[pc_n] -> "PCS.get( Crd_Pcn(PCS," ^ x ^ "," ^ y ^ "," ^ jexpr pc_n ^") )"
+	| [pl_n; pc_n] -> "PCS.get( Crd_Plr_Pcn(PCS," ^ x ^ "," ^ y ^ "," ^ jexpr pl_n ^ 
+		"," ^ jexpr pc_n ^") )"
 	| [pl_n; pc_n; c] -> "PCS.get( Crd_Plr_Pcn(PCS," ^ x ^ "," ^ y ^ "," ^ 
-		SId(pl_n,d) ^ "," ^ SId(pc_n,d) ^") )"
+		jexpr pl_n ^ "," ^ jexpr pc_n ^") )"
 	| _ ->  "Invalid Board Function" ) 
 
 
 and boardFunction x y func args = 
-	(match SId(func,d) with
+	(match Ast.string_of_expr func with
 	"unoccupied" -> "Crd(PCS,"^x^","^y^")>-1"
-	| "Pieces" -> boardFunctionPieces x y args )
+	| "Pieces" -> boardFunctionPieces x y args
+	| _ -> "Invalid Board Function" )
 
 and boardAccessLoc x y keyword pos = 
-	(match string_of_expr keyword with
-	"Pieces" -> "PCS.get( Crd_Pos(PCS," ^ x ^ "," ^ y ^ "," ^ jexpr pos ^ ") )"
+	(match jexpr keyword with
+	"Pieces" -> "PCS.get( Crd_Pos(PCS," ^ x ^ "," ^ y ^ "," ^  jexpr pos ^ ") )"
 	| _ -> "Cannot Access Part of Board" )
 
 
 let rec jstmt globals = function
    SBlock(stmts) ->
-	"{\n" ^ String.concat "" (List.map jstmt globals  stmts) ^ "}\n"
+	"{\n" ^ String.concat "" (List.map (jstmt globals) stmts) ^ "}\n"
 
  | SExpr(expr) -> jexpr expr ^ ";\n";
 
  | SReturn(expr) -> "return " ^ jexpr expr ^ ";\n";
 
- | SIf(e, s, Block([])) -> "if (" ^ jexpr e ^ ")\n" ^ jstmt s
+ | SIf(e, s, SBlock([])) -> "if (" ^ jexpr e ^ ")\n" ^ jstmt globals s
 
  | SIf(e, s1, s2) ->  "if (" ^ jexpr e ^ ")\n" ^
-      jstmt s1 ^ "else\n" ^ jstmt s2
+      jstmt globals s1 ^ "else\n" ^ jstmt globals s2
 
  | SLoop(e, s) -> 
 	(match e with
-	   SThrough(e1,e2,d) -> "for(int i=" ^ SLint(e1) ^ "; i<" ^
-			SLint(e2) ^ "; i++)" ^ jstmt s 
-	| e -> "while (" ^ jexpr e ^ ") " ^ jstmt s)
+	   SThrough(e1,e2,d) -> "for(int i=" ^ jexpr e1 ^ "; i<" ^
+			jexpr e2 ^ "; i++)" ^ jstmt globals s 
+	| e -> "while (" ^ jexpr e ^ ") " ^ jstmt globals s)
 
  | SDecl(bgtype,expr,scope) ->
 	(match scope with
-	Global -> declare bgtype expr :: globals; ""
+	Global -> let s = declare bgtype expr in s::globals; ""
 	
 	| _ -> declare bgtype expr )
 
+ | SNextPlayer -> "NP();" 
 
 and declare bgtype expr = 
 	(match bgtype with
-	  Int -> "int" | Float -> "float" | Bool -> "boolean" 
-	| Coord -> "Point" | String -> "String"
-	| Piece -> "Pieces") ^ " " ^
+	  Datatype(Int) -> "int" | Datatype(Float) -> "double" | Datatype(Bool) -> "boolean" 
+	| Datatype(String) -> "String"
+	| Datatype(Piece) -> "Pieces") ^ " " ^
 	(match expr with 
 	SAssign(v,ex,sc,d) -> "v = new " 
 		(match bgtype with
