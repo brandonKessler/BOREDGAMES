@@ -1,0 +1,12 @@
+Setup{
+	new Board(3,3);
+	new Player("A");
+	new Player("B");
+	
+}
+Rules{
+
+}
+Play{
+ Output("done");
+}

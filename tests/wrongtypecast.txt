@@ -1,0 +1,10 @@
+Setup{
+ new Board(3,3);
+	
+}
+Rules{
+
+}
+Play{
+int i = "hello";
+}

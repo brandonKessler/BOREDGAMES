@@ -131,7 +131,7 @@ let rec check_expr env e = match e with
                 check_expr env e1 in
                                 if typee2 = Datatype(Int) then type1 else raise
                                 (Error("Lookup index needs to be of type int"))
-        | Call(Id("Output"), e1) -> let  _ = List.map(fun exp -> check_expr env
+        | Call(Id("Output"), e1) -> let _ = List.map(fun exp -> check_expr env
                                            exp) e1 in Datatype(Bool)
         | Call(Id("Input"), e1) -> let _ = List.map(fun exp -> check_expr env exp)
                                         e1 in Datatype(Bool)
@@ -234,7 +234,7 @@ let get_sexpr_list env expr_list = let sexpr_list= List.map(fun expr -> let t1
 let get_sdecl env decl = match decl with 
         Decl(datatype, Id(s)) -> SDecl(Datatype(datatype), SId(s, Global,
         Datatype(datatype)), Global)
-        |Decl(datatype, Assign(s,e1)) -> SDecl(Datatype(datatype), SAssign(s,
+        |Decl(datatype, Assign(s,e1)) ->  SDecl(Datatype(datatype), SAssign(s,
         get_sexpr env e1, Global, check_expr env e1),Global)
         | _ -> raise(Error("Bad Declaration"))
 let get_name_type_from_decl decl = match decl with
@@ -365,14 +365,14 @@ let rec check_stmt env stmt = match stmt with
                                                 in let new_env = add_to_global_table env
                                                 n (Datatype(t)) None in (sdecl,
                                                 new_env)
-                                        | Assign(s1, e1)  ->
+                                        | Assign(s1, e1)  -> 
                                         let t1 =
                                                 datatype 
                                         and t2 =
                                                 get_type(check_expr
                                                 env e1)  in
                                         
-                                        if(t1 = t2 || t2 = String) then let sdecl =
+                                        if(t1 = t2) then let sdecl =
                                                 get_sdecl env decl
                                         in let (n,t,v) =
                                                 get_name_type_value_from_decl
@@ -446,6 +446,7 @@ let get_rules_names env rules_list =
         new_env2
 
 let check_program program = 
+        
         let (setup, rules, play) = program in
         let env = empty_environment in
         let (typed_setup, new_env) = get_ssetup_decl_list env setup in (* should

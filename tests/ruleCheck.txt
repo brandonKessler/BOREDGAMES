@@ -1,0 +1,10 @@
+Setup{
+	new Board(3,3);
+	
+}
+Rules{
+rule r1: return true;;
+}
+Play{
+Output("Bye World");
+}

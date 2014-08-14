@@ -1,0 +1,13 @@
+Setup{
+	new Board(3,3);
+	
+}
+Rules{
+rule r1: return true;;
+}
+Play{
+int i = 3 + 3;
+int a = i * i;
+Output("Done");
+
+}

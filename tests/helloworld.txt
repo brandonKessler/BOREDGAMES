@@ -1,0 +1,10 @@
+Setup{
+Output("Hello World");
+	
+}
+Rules{
+
+}
+Play{
+Output("Bye World");
+}

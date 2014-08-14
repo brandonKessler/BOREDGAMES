@@ -1,0 +1,19 @@
+Setup{
+	new Board(3,3);
+	new Player("A");
+	new Player("B");
+	new Pieces("A", "X", 6);
+	new Pieces("B", "O", 6);
+	
+}
+Rules{
+  rule r1: loop(1:6) { if(i == 2) { int a =3; return true;} else { return false;}} return false;;
+rule r2: return false;;
+rule r3: return r1;;
+}
+Play{
+int i = 2;
+if(r3){
+ Output("done");
+}
+}

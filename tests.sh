@@ -1,0 +1,13 @@
+./compiler < tests/rules.txt
+./compiler < tests/greaterthantest.txt
+./compiler < tests/rule.txt
+./compiler < tests/dsa.txt
+./compiler < tests/elseiftest.txt
+./compiler < tests/ifelsetest.txt
+./compiler < tests/piecetest.txt
+./compiler < tests/playertest.txt
+./compiler < tests/binop.txt
+./compiler < tests/ruleCheck.txt
+./compiler < tests/helloworld.txt
+./compiler < tests/BigTest.txt
+./compiler < tests/wrongtypecast.txt

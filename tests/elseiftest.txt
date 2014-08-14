@@ -1,0 +1,22 @@
+Setup{
+	new Board(3,3);
+	new Player("A");
+	new Player("B");
+	new Pieces("A", "X", 6);
+	new Pieces("B", "O", 6);
+}
+Rules{
+
+}
+Play{
+int i = 0;
+if(i == 1){
+ i = 2;
+}
+else{ if(i == 2){
+i = 4;
+}
+i = 3;
+}
+ Output("done");
+}

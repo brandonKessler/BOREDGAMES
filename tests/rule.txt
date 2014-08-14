@@ -1,0 +1,22 @@
+Setup{
+	new Board(3,3);
+	new Player("A");
+	new Player("B");
+	new Pieces("A", "X", 6);
+	new Pieces("B", "O", 6);
+	
+}
+Rules{
+  rule r1: loop(1:6) { if(i == 2) { int a =3; return true;} else { return false;}} return false;;
+rule r2: return false;;
+}
+Play{
+int j;
+Board[(3,3)];
+string s = Player[1].name();
+int i = 2;
+if(r1 && r2){
+j = i;
+ Output(s);
+}
+}
