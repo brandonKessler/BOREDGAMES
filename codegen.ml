@@ -4,7 +4,7 @@ open Printf
 open Semantics 
 
 
-
+let globals = [];;
 
 let rec jexpr = function
    SLint(l,d) -> string_of_int l
@@ -23,13 +23,15 @@ let rec jexpr = function
         	| Less -> "<" | Leq -> "<=" | Greater -> ">" | Geq -> ">="
 		| Or -> "||" | And -> "&&") ^ " " ^
       		jexpr e2)
+ | SCat(e1,e2,d) -> jexpr e1 ^ "+" ^ jexpr e2
+
  | SThrough(e1,e2,d) -> "for (int i=" ^ jexpr e1^ "; i<" ^
 	jexpr e2^"; i++) {\n"
 
  | SIncr(e,i,d) -> 
 	jexpr e ^ 
 	(match i with
-	  Plus -> "++" | Minus -> "--" | _ -> "Invalid Increment/Decrement") 
+	  Plus -> "++" | Minus -> "--" ) 
 
  | SAssign(v,e,scope,d) ->  v ^ " = " ^ jexpr e 
 
@@ -48,8 +50,8 @@ let rec jexpr = function
 		| _ -> "Invalid Add Arguments" )
 	| _ -> "blah")
 
- | SBaccess(e1,c,d) -> "PCS.get( Crd(PCS," ^ string_of_int c.sxc ^ "," ^
-	string_of_int c.syc ^ ")"
+ | SBaccess(e1,c,d) -> "PCS.get( Crd(PCS," ^ jexpr c.sxc ^ "," ^
+	jexpr c.syc ^ ")"
  | SAccess(key,pos,d) -> (match jexpr key with
 	"Player" -> "Players.get(" ^ jexpr pos ^ ")"
 	| _ -> "Invalid Access" )
@@ -57,7 +59,7 @@ let rec jexpr = function
  | SDaccess(e1,e2,d) ->
 	(match e1 with
 	SBaccess(expr,coord,d) -> 
-		boardAccess (string_of_int coord.sxc) (string_of_int coord.syc) e2
+		boardAccess (jexpr coord.sxc) (jexpr coord.syc) e2
 	| SId(keyword,scope,d) -> (match keyword with
 		"Player" -> playerDot e2
 		| _ -> "Invalid Left Dot Access" )
@@ -184,28 +186,28 @@ and boardAccessLoc x y keyword pos =
 	| _ -> "Cannot Access Part of Board" )
 
 
-let rec jstmt globals = function
+let rec jstmt = function
    SBlock(stmts) ->
-	"{\n" ^ String.concat "" (List.map (jstmt globals) stmts) ^ "}\n"
+	"{\n" ^ String.concat "" (List.map jstmt stmts) ^ "}\n"
 
  | SExpr(expr) -> jexpr expr ^ ";\n";
 
  | SReturn(expr) -> "return " ^ jexpr expr ^ ";\n";
 
- | SIf(e, s, SBlock([])) -> "if (" ^ jexpr e ^ ")\n" ^ jstmt globals s
+ | SIf(e, s, SBlock([])) -> "if (" ^ jexpr e ^ ")\n" ^ jstmt s
 
  | SIf(e, s1, s2) ->  "if (" ^ jexpr e ^ ")\n" ^
-      jstmt globals s1 ^ "else\n" ^ jstmt globals s2
+      jstmt s1 ^ "else\n" ^ jstmt s2
 
  | SLoop(e, s) -> 
 	(match e with
 	   SThrough(e1,e2,d) -> "for(int i=" ^ jexpr e1 ^ "; i<" ^
-			jexpr e2 ^ "; i++)" ^ jstmt globals s 
-	| e -> "while (" ^ jexpr e ^ ") " ^ jstmt globals s)
+			jexpr e2 ^ "; i++)" ^ jstmt s 
+	| e -> "while (" ^ jexpr e ^ ") " ^ jstmt s)
 
  | SDecl(bgtype,expr,scope) ->
 	(match scope with
-	Global -> let s = declare bgtype expr in s::globals; ""
+	Global -> ignore (let gl = declare bgtype expr in gl::globals ); ""
 	
 	| _ -> declare bgtype expr )
 
@@ -215,43 +217,44 @@ and declare bgtype expr =
 	(match bgtype with
 	  Datatype(Int) -> "int" | Datatype(Float) -> "double" | Datatype(Bool) -> "boolean" 
 	| Datatype(String) -> "String"
-	| Datatype(Piece) -> "Pieces") ^ " " ^
+	| Datatype(Piece) -> "Pieces"
+	| Datatype(Player) -> ""
+	| Datatype(Tile) -> ""
+	| Datatype(Rule) -> "" ) ^ " " ^
 	(match expr with 
-	SAssign(v,ex,sc,d) -> "v = new " 
+	SAssign(v,ex,sc,d) -> v ^ "= new " ^ 
 		(match bgtype with
-		Piece -> "Pieces(\" " ^ jexpr ex ^ "\");" 
-		| String -> "String(\" " ^ jexpr ex ^ "\");" 
-		| Coord -> "Point(" ^ jexpr ex ^ ");"
+		Datatype(Piece) -> "Pieces(" ^ jexpr ex ^ ");" 
+		| Datatype(String) -> "String(" ^ jexpr ex ^ ");" 
 		| _ -> "")
 	| _ -> jexpr expr ^ ";")
 
 
 
-and jsetup globals  = function
+and jsetup = function
    SSetbd(m) -> "new Board(" ^ string_of_int m.srows ^ "," ^ string_of_int m.scols ^ ")\n"
-  | SSetpc(pc) -> "for(int i=0; i<" ^pc.snum^ "; i++)\nPieces P = new Pieces(" ^ 
-	pc.sowner ^ "," ^ pc.sname ^ "," ^ string_of_int pc.sptval ^ "," ^ 
-	string_of_int pc.scloc.sxc ^ "," ^ string_of_int pc.scloc.syc ^ ");
-	\nPCS.add(P);\n}"
- | SSetplr(plr) -> "PLR.add(" ^ plr.sname ^ ");"
- | SStmt(s) -> jstmt globals s ^ "\n"
+  | SSetpc(pc) -> "for(int i=0; i<" ^ string_of_int pc.snum^ "; i++)\n" ^ 
+	"Pieces P = new Pieces(" ^ pc.sowner ^ "," ^ pc.sname ^ "," ^ 
+	string_of_int pc.sptval ^ "," ^ jexpr pc.scloc.sxc ^ "," ^ 
+	jexpr pc.scloc.syc ^ ");\nPCS.add(P);\n}"
+ | SSetplr(plr) -> "PLR.add(" ^ plr.splrname ^ ");"
+ | SStmt(s) -> jstmt s ^ "\n"
 
 
-and jrules global r = "static void " ^ r.srname ^ "() {\n" ^ 
-	String.concat "" (List.map jstmt global r.srbody) ^ "\n}"
+and jrules r = "static void " ^ r.srname ^ "() {\n" ^ 
+	String.concat "" (List.map jstmt r.srbody) ^ "\n}"
 
-and jprogSetup globals setup_list = 
-	String.concat "" (List.map jsetup globals setup_list)
+and jprogSetup setup_list = 
+	String.concat "" (List.map jsetup setup_list)
 
-and jprogRules globals rule_list = String.concat "" (List.map jrules global rule_list) ^ "}"
+and jprogRules rule_list = String.concat "" (List.map jrules rule_list) ^ "}"
 	
 
 and jprogram program =
 	let (ssetup, srules, sstmt) = program in
-	let globals = [] in
-	let setup_func = jprogSetup globals ssetup
-	and body = jstmt globals sstmt
-	and rule_func = jprogRules globals srules
+	let setup_func = jprogSetup ssetup
+	and body = jstmt sstmt
+	and rule_func = jprogRules srules
 	in 
 	sprintf "public class BG {
 		%s
@@ -260,5 +263,5 @@ and jprogram program =
 			%s
 		}
 		%s
-	}" globals setup_func body rule_func
+	}" (String.concat " " globals) setup_func body rule_func
 
