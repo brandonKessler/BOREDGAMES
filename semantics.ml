@@ -387,6 +387,6 @@ let check_program program =
         let (typed_play, new_env3) =  get_sstmt_list new_env2 play in (* should
         type check play section *)
         let (typed_rules, new_env4) = initialize_rules new_env3 rules in
-        Prog(typed_setup, typed_rules, typed_play)
+        (typed_setup, typed_rules, typed_play)
 
 

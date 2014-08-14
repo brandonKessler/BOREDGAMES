@@ -61,4 +61,4 @@ type spiece_t = {
  type srules_decl =
          SRules_Decl of srules_t * datatype
  type sprogram = 
-         Prog of ssetup_dec list * srules_decl list * sstmt list
+         ssetup_dec list * srules_decl list * sstmt list
