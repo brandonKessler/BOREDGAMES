@@ -84,6 +84,7 @@ let rec string_of_expr = function
         | Less -> "<" | Leq -> "<=" | Greater -> ">" | Geq -> ">="
 	| Or -> "||" | And -> "&&") ^ " " ^
       string_of_expr e2
+ | Cat(e1, e2) -> string_of_expr e1 ^ " ^ " ^ string_of_expr e2
  | Through(e1,e2) ->
 	string_of_expr e1 ^ ":" ^ string_of_expr e2
  | Incr(e,i) -> 
