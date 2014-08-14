@@ -247,7 +247,8 @@ and jrules r = "static void " ^ r.srname ^ "() {\n" ^
 and jprogSetup setup_list = 
 	String.concat "" (List.map jsetup setup_list)
 
-and jprogRules rule_list = String.concat "" (List.map jrules rule_list) ^ "}"
+and jprogRules rule_list = let (rls, dtype) = rule_list in 
+	String.concat "" (List.map jrules rls) ^ "}"
 	
 
 and jprogram program =
