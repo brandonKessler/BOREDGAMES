@@ -2,8 +2,7 @@
 
 type op = Add | Sub | Mult | Div | Equal | Neq | Less | Leq | Greater | Geq | Or | And
 
-type bg_t = Int | Float | Bool| String | Piece | Player | Tile
-| Rule
+type bg_t = Int | Float | Bool| String | Piece | Player | Tile  | Rule
 
 type inc = Plus | Minus
  
@@ -116,7 +115,7 @@ let rec string_of_stmt = function
  | Decl(bg,e) ->
 	(match bg with
 	  Int -> "int" | Float -> "float" | Bool -> "bool" 
-	| String -> "string"
+	| String -> "string" 
 	| Piece -> "piece" |  Player -> "player" | Tile ->
                         "tile" | Rule -> "rule") ^ " " ^
 	string_of_expr e
