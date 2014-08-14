@@ -12,5 +12,5 @@ compile:
 	ocamlc -c compiler.ml
 	ocamlc -o compiler ast.cmo parser.cmo scanner.cmo sast.cmo semantics.cmo compiler.cmo
 clean:
-	rm -f parser.ml ast.cmi ast.cmo compiler.cmi compiler.cmo parser.cmi parser.cmo parser.mli parser.ml sast.cmi sast.cmo scanner.cmi scanner.cmo scanner.ml semantics.cmi semantics.cmo	
+	rm -f parser.ml ast.cmi ast.cmo compiler.cmi compiler.cmo parser.cmi parser.cmo parser.mli parser.ml sast.cmi sast.cmo scanner.cmi scanner.cmo scanner.ml semantics.cmi semantics.cmo compiler	
  
