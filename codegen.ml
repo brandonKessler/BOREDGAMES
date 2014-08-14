@@ -1,10 +1,12 @@
 open Sast
 open Ast
 open Printf
+open Semantics 
 
-let err str = raise(Failure(“Compile: “ ^ str));;
 
-and let rec Jexpr = function
+
+
+let rec jexpr = function
    SLint(l,d) -> string_of_int l
  | SLfloat(f,d) -> string_of_float f
  | SLbool(b,d) -> string_of_bool b
@@ -12,226 +14,236 @@ and let rec Jexpr = function
  | SId(s,scope, d) -> s
  | SBinop(e1, o, e2, d) ->
 	(match d with
-	Piece -> Jexpr e1 ^ ".equals(" ^ Jexpr e2 ^ ")"
-	| Coord -> Jexpr e1 ^ ".equals(" ^ Jexpr e2 ^ ")"
-	| String -> Jexpr e1 ^ ".equals(" ^ Jexpr e2 ^ ")" 
-	| _ -> Jexpr e1 ^ " " ^
+	Datatype(Piece) -> jexpr e1 ^ ".equals(" ^ jexpr e2 ^ ")"
+	| Datatype(Coord) -> jexpr e1 ^ ".equals(" ^ jexpr e2 ^ ")"
+	| Datatype(String) -> jexpr e1 ^ ".equals(" ^ jexpr e2 ^ ")" 
+	| _ -> jexpr e1 ^ " " ^
 		(match o with
 		  Add -> "+" | Sub -> "-" | Mult -> "*" | Div -> "/"
 		| Equal -> "==" | Neq -> "!="
         	| Less -> "<" | Leq -> "<=" | Greater -> ">" | Geq -> ">="
 		| Or -> "||" | And -> "&&") ^ " " ^
-      		Jexpr e2)
- | SThrough(e1,e2,d) -> 
-	(match e1 with
-	Lint(l) -> “for (int i=string_of_int e1; i<string_of_int e2; i++) {\n”
+      		jexpr e2)
+ | SThrough(e1,e2,d) -> "for (int i=" ^ jexpr e1^ "; i<" ^
+	jexpr e2^"; i++) {\n"
 
  | SIncr(e,i,d) -> 
-	Jexpr e ^ 
+	jexpr e ^ 
 	(match i with
-	  Plus -> "++" | Minus -> "--" | _ -> err “Invalid Increment/Decrement”) 
+	  Plus -> "++" | Minus -> "--" | _ -> "Invalid Increment/Decrement") 
 
- | SAssign(v,e,scope,d) ->  v ^ " = " ^ Jexpr e )
+ | SAssign(v,e,scope,d) ->  v ^ " = " ^ jexpr e 
 
- | SCall(func,args,scope,d) ->
-	(match Id(func) with
-	“sizeOf” -> SizeAccess args
-	| “move” -> (match args with
-		[pc; c] -> “PC = “ ^ Jexpr pc^ “;\nPC.loc.x = “ ^ string_of_int c.xc ^”;\nPC.loc.y = “ ^ string_of_int c.yc ^ “;\n”
-		| _ -> err “Invalid Move Arguments” )
-	| “add” -> (match args with 
-		[pc; c] -> “PC = “ ^ Jexpr pc^ “;\nPC.loc.x = “ ^ string_of_int c.xc ^”;\nPC.loc.y = “ ^ string_of_int c.yc ^ “;\n”)
-	)
+ | SCall(func,args,scope,d) -> 
+	(match Ast.string_of_expr func with
+	"sizeOf" -> (match args with
+		[a] -> sizeAccess a
+		| _ -> "Invalid sizeOf Arguments")
+	| "move" -> (match args with
+		[pc; x; y] -> "PC = " ^ jexpr pc^ ";\nPC.loc.x = " ^ jexpr x ^
+			";\nPC.loc.y = " ^ jexpr y ^ ";\n"
+		| _ -> "Invalid Move Arguments" )
+	| "add" -> (match args with 
+		[pc; x; y] -> "PC = " ^ jexpr pc^ ";\nPC.loc.x = " ^ jexpr x ^
+			";\nPC.loc.y = " ^ jexpr y ^ ";\n"
+		| _ -> "Invalid Add Arguments" )
+	| _ -> "blah")
+
+ | SBaccess(e1,c,d) -> "PCS.get( Crd(PCS," ^ string_of_int c.sxc ^ "," ^
+	string_of_int c.syc ^ ")"
+ | SAccess(key,pos,d) -> (match jexpr key with
+	"Player" -> "Players.get(" ^ jexpr pos ^ ")"
+	| _ -> "Invalid Access" )
 
  | SDaccess(e1,e2,d) ->
 	(match e1 with
-	SBaccess(expr,coord,d) -> BoardAccess string_of_int coord.xc string_of_int coord.yc e2
-	| SId(keyword,d) -> (match keyword with
-		“Player” -> PlayerDot e2
-		| _ -> err “Invalid Left Dot Access” )
-	| -> err Invalid Left Dot Access” )
+	SBaccess(expr,coord,d) -> 
+		boardAccess (string_of_int coord.sxc) (string_of_int coord.syc) e2
+	| SId(keyword,scope,d) -> (match keyword with
+		"Player" -> playerDot e2
+		| _ -> "Invalid Left Dot Access" )
+	| _ -> "Invalid Left Dot Access" )
 		
  | SNoexpr -> ""
 
 
-and let SizeAccess args = 
+and sizeAccess args = 
 	(match args with
-	SId(keyword,d) -> (match keyword with
-		“Board” -> “BD_SIZE”
-		| _ -> err “Invalid sizeOf Argument”)
-	| SCall(func, args,scope,d) -> SizeAccessCall func
-	| SDaccess(e1,e2,d) -> (match Id(e1) with 
-		“Player” -> (match e2 with
-			SCall(func,args,scope,d) -> SizeAccessCall func
-			| _ -> err “Invalid sizeOf Player Function Argument” )
-		| _ -> err “Invalid sizeOf Function Argument”
-	| _ -> err “Invalid sizeOf Argument” )
+	SId(keyword,scope,d) -> (match keyword with
+		"Board" -> "BD_SIZE"
+		| _ -> "Invalid sizeOf Argument")
+	| SCall(func, args,scope,d) -> sizeAccessCall func
+	| SDaccess(e1,e2,d) -> (match jexpr e1 with 
+		"Player" -> (match e2 with
+			SCall(func,args,scope,d) -> sizeAccessCall func
+			| _ -> "Invalid sizeOf Player Function Argument" )
+		| _ -> "Invalid sizeOf Function Argument" )
+	| _ -> "Invalid sizeOf Argument" )
 
-and let SizeAccessCall func =
-	(match SId(func,_) with 
-	“inventory” -> “Crd_SearchCt(PCS,0,0,Players.get(curPlayer))”
-	| “onBoard” -> “Crd_SearchCt_Gt(PCS,0,0,Players.get(curPlayer))”
-	| _ -> err “Invalid Size Function Argument”)
+and sizeAccessCall func =
+	(match Ast.string_of_expr func with 
+	"inventory" -> "Crd_SearchCt(PCS,0,0,Players.get(curPlayer))"
+	| "onBoard" -> "Crd_SearchCt_Gt(PCS,0,0,Players.get(curPlayer))"
+	| _ -> "Invalid Size Function Argument")
 
-and let PlayerDot e2 = 
+and playerDot e2 = 
 	(match e2 with 
-	SCall(func,args,scope,d) -> (match Id(func) with
-		“name” -> “Player.get(curPlayer);”
-		| “inventory” -> PlayerDotInvFunc args 
-		| “onBoard” -> PlayerDotBdFunc args
-		| _ -> err “Invalid Player Function Access” )
-	| SAccess(keyword, pos,d) -> (match Id(keyword) with
-		“inventory” -> “PCS.get( Crd_Plr_Pos(PCS,0,0,Players.get(curPlayer),” ^ string_of_int pos ^ “) )”
-		| “onBoard” -> “PCS.get( Crd_Plr_Pos_Gt(PCS,0,0,Players.get(curPlayer),” ^ string_of_int pos ^ “) )”
-		| _ -> err “Invalid Player Array Access” )
-	| _ -> err “Invalid Player Access” )
+	SCall(func,args,scope,d) -> (match Ast.string_of_expr func with
+		"name" -> "Player.get(curPlayer);"
+		| "inventory" -> playerDotInvFunc args 
+		| "onBoard" -> playerDotBdFunc args
+		| _ -> "Invalid Player Function Access" )
+	| SAccess(keyword, pos,d) -> (match jexpr keyword with
+		"inventory" -> "PCS.get( Crd_Plr_Pos(PCS,0,0,Players.get(curPlayer)," ^ 
+			jexpr pos ^ ") )"
+		| "onBoard" -> "PCS.get( Crd_Plr_Pos_Gt(PCS,0,0,Players.get(curPlayer)," ^ 
+			jexpr pos ^ ") )"
+		| _ -> "Invalid Player Array Access" )
+	| _ -> "Invalid Player Access" )
 
 
 
-and let PlayerDotInvFunc args = 
+and playerDotInvFunc args = 
 	(match args with
-	[pc_n] -> “PCS.get( Crd_Plr_Pcn(PCS,0,0,Players.get(curPlayer),” ^ Id(pc_n) ^”) )”
-	| [pl_n; pc_n] -> “PCS.get( Crd_Plr_Pcn(PCS,0,0,Players.get(curPlayer),” ^ Id(pc_n) ^”) )”
-	| [pl_n; pc_n; c] -> “PCS.get( Crd_Plr_Pcn(PCS,0,0,Players.get(curPlayer),” ^ Id(pc_n) ^”) )”
-	| _ -> err “Invalid Player Access Function” 
+	[pc_n] -> "PCS.get( Crd_Plr_Pcn(PCS,0,0,Players.get(curPlayer)," ^ 
+		jexpr pc_n ^") )"
+	| [pl_n; pc_n] -> "PCS.get( Crd_Plr_Pcn(PCS,0,0,Players.get(curPlayer)," ^ 
+		jexpr pc_n ^") )"
+	| [pl_n; pc_n; c] -> "PCS.get( Crd_Plr_Pcn(PCS,0,0,Players.get(curPlayer)," ^ 
+		jexpr pc_n ^") )"
+	| _ -> "Invalid Player Access Function") 
 
 
-and let PlayerDotBdFunc args = 
+and playerDotBdFunc args = 
 	(match args with
-	[pc_n] -> “PCS.get( Pcn(PCS,” ^ Id(pc_n) ^”) )”
-	| [pl_n; pc_n] -> “PCS.get( Plr_Pcn(PCS,” ^ Id(pl_n) ^ “,” ^ Id(pc_n) ^”) )”
-	| [pl_n; pc_n; c] -> “PCS.get( Crd_Plr_Pcn(PCS,” ^ string_of_int c.xc ^ “,” ^ string_of_int c.yc ^ “,” ^ Id(pl_n) ^ “,” ^ Id(pc_n) ^”) )”
-	| _ -> err “Invalid Player Access Function” 
+	[pc_n] -> "PCS.get( Pcn(PCS," ^ jexpr pc_n ^") )"
+	| [pl_n; pc_n] -> "PCS.get( Plr_Pcn(PCS," ^ jexpr pl_n ^ "," ^ jexpr pc_n ^") )"
+	| [pl_n; pc_n; x;y] -> "PCS.get( Crd_Plr_Pcn(PCS," ^ jexpr x ^ "," ^ 
+		jexpr y ^ "," ^ jexpr pl_n ^ "," ^ jexpr pc_n ^") )"
+	| _ ->  "Invalid Player Access Function") 
 	
-
-and let BoardAccess x y right = 
+and boardAccess x y right = 
 	(match right with
-	SAccess(keyword,pos,d) -> BoardAccessLoc x y keyword string_of_int pos
-	| SCall(func, args,scope,d) -> BoardFunction x y func args
+	SAccess(keyword,pos,d) -> boardAccessLoc x y keyword pos
+	| SCall(func, args,scope,d) -> boardFunction x y func args
 	| SDaccess(lftexpr, rtexpr,d) -> 
 		(match lftexpr with
-		SAccess(keyword,pos,d) -> BoardAccessDot x y keyword string_of_int pos rtexpr
-		| SCall(func, args,scope,d) -> BoardFunctionDot x y func args rtexpr 
-		| _ -> err “Invalid Board Access”)
-	| _ -> err “Invalid Board Argument
+		SAccess(keyword,pos,d) -> boardAccessDot x y keyword string_of_int pos rtexpr
+		| SCall(func, args,scope,d) -> boardFunctionDot x y func args rtexpr 
+		| _ -> "Invalid Board Access")
+	| _ -> "Invalid Board Argument" )
 
-and let BoardFunctionDot x y func args rtexpr = 
-	(match SId(func,_) with
-	“Pieces” -> BoardFunctionPieces x y args ^ 
+
+and boardFunctionDot x y func args rtexpr = 
+	(match SId(func,d) with
+	"Pieces" -> boardFunctionPieces x y args ^ 
 		(match rtexpr with
-		SCall(func, args,scope,d) -> (match SId(func,_) with
-			“owner” -> “.owner”
-			| “name” -> “.name”
-			| “point” -> “.val”
-			| “location” -> “.loc”
-			| _ -> err “Invalid Pieces field”)
-		| _ -> err “Invalid Pieces Access”)
-	| _ -> err “Invalid Board Access Function”)
+		SCall(func, args,scope,d) -> (match SId(func,d) with
+			"owner" -> ".owner"
+			| "name" -> ".name"
+			| "point" -> ".val"
+			| "location" -> ".loc"
+			| _ -> "Invalid Pieces field")
+		| _ -> "Invalid Pieces Access")
+	| _ -> "Invalid Board Access Function")
 	
 
 
-and let BoardFunctionPieces x y args = 
+and boardFunctionPieces x y args = 
 	(match args with
-	[pc_n] -> “PCS.get( Crd_Pcn(PCS,” ^ x ^ “,” ^ y ^ “,” ^ Id(pc_n) ^”) )”
-	| [pl_n; pc_n] -> “PCS.get( Crd_Plr_Pcn(PCS,” ^ x ^ “,” ^ y ^ “,” ^ Id(pl_n) ^ “,” ^ Id(pc_n) ^”) )”
-	| [pl_n; pc_n; c] -> “PCS.get( Crd_Plr_Pcn(PCS,” ^ x ^ “,” ^ y ^ “,” ^ Id(pl_n) ^ “,” ^ Id(pc_n) ^”) )”
-	| _ -> err “Invalid Board function” 
+	[pc_n] -> "PCS.get( Crd_Pcn(PCS," ^ x ^ "," ^ y ^ "," ^ SId(pc_n,d) ^") )"
+	| [pl_n; pc_n] -> "PCS.get( Crd_Plr_Pcn(PCS," ^ x ^ "," ^ y ^ "," ^ SId(pl_n,d) ^ 
+		"," ^ SId(pc_n,d) ^") )"
+	| [pl_n; pc_n; c] -> "PCS.get( Crd_Plr_Pcn(PCS," ^ x ^ "," ^ y ^ "," ^ 
+		SId(pl_n,d) ^ "," ^ SId(pc_n,d) ^") )"
+	| _ ->  "Invalid Board Function" ) 
 
 
-and let BoardFunction x y func args = 
-	(match string_of_expr func with
-	“unoccupied” -> “Crd(PCS,”^x^”,”^y^”)>-1”
-	| “Pieces” -> BoardFunctionPieces x y args
+and boardFunction x y func args = 
+	(match SId(func,d) with
+	"unoccupied" -> "Crd(PCS,"^x^","^y^")>-1"
+	| "Pieces" -> boardFunctionPieces x y args )
 
-
-and let BoardFunctionPieces x y args = 
-	(match args with
-	[pc_n] -> “PCS.get( Crd_Pcn(PCS,” ^ x ^ “,” ^ y ^ “,” ^ Id(pc_n) ^”) )”
-	| [pl_n; pc_n] -> “PCS.get( Crd_Plr_Pcn(PCS,” ^ x ^ “,” ^ y ^ “,” ^ Id(pl_n) ^ “,” ^ Id(pc_n) ^”) )”
-	| [pl_n; pc_n; c] -> “PCS.get( Crd_Plr_Pcn(PCS,” ^ x ^ “,” ^ y ^ “,” ^ Id(pl_n) ^ “,” ^ Id(pc_n) ^”) )”
-	| _ -> err “Invalid Board function” 
-
-
-and let BoardAccessLoc x y keyword pos = 
+and boardAccessLoc x y keyword pos = 
 	(match string_of_expr keyword with
-	“Pieces” -> “PCS.get( Crd_Pos(PCS,” ^ x ^ “,” ^ y ^ “,” ^ pos ^ “) )”
-	| _ -> err = “Cannot access part of Board”
+	"Pieces" -> "PCS.get( Crd_Pos(PCS," ^ x ^ "," ^ y ^ "," ^ jexpr pos ^ ") )"
+	| _ -> "Cannot Access Part of Board" )
 
 
-and let rec Jstmt globals = function
+let rec jstmt globals = function
    SBlock(stmts) ->
-	"{\n" ^ String.concat "" (List.map Jstmt stmts) ^ "}\n"
+	"{\n" ^ String.concat "" (List.map jstmt globals  stmts) ^ "}\n"
 
- | SExpr(expr) -> Jexpr expr ^ ";\n";
+ | SExpr(expr) -> jexpr expr ^ ";\n";
 
- | SReturn(expr) -> "return " ^ Jexpr expr ^ ";\n";
+ | SReturn(expr) -> "return " ^ jexpr expr ^ ";\n";
 
- | SIf(e, s, Block([])) -> "if (" ^ Jexpr e ^ ")\n" ^ Jstmt s
+ | SIf(e, s, Block([])) -> "if (" ^ jexpr e ^ ")\n" ^ jstmt s
 
- | SIf(e, s1, s2) ->  "if (" ^ Jexpr e ^ ")\n" ^
-      Jstmt s1 ^ "else\n" ^ Jstmt s2
+ | SIf(e, s1, s2) ->  "if (" ^ jexpr e ^ ")\n" ^
+      jstmt s1 ^ "else\n" ^ jstmt s2
 
  | SLoop(e, s) -> 
 	(match e with
-	   SThrough(e1,e2,d) -> “for(int i=“ ^ SLint(e1) ^ “; i<“ ^
-			SLint(e2) ^ “; i++)” ^ Jstmt s 
-	| e -> “while (" ^ Jexpr e ^ ") " ^ Jstmt s)
+	   SThrough(e1,e2,d) -> "for(int i=" ^ SLint(e1) ^ "; i<" ^
+			SLint(e2) ^ "; i++)" ^ jstmt s 
+	| e -> "while (" ^ jexpr e ^ ") " ^ jstmt s)
 
  | SDecl(bgtype,expr,scope) ->
 	(match scope with
-	Global -> Declare bgtype expr :: globals; “”
+	Global -> declare bgtype expr :: globals; ""
 	
-	| _ -> Declare bgtype expr )
+	| _ -> declare bgtype expr )
 
 
-and let Declare bgtype expr = 
+and declare bgtype expr = 
 	(match bgtype with
-	  Int -> "int" | Float -> "float" | Bool -> "boolean” 
-	| Coord -> “Point” | String -> “String"
-	| Piece -> “Pieces”) ^ " " ^
+	  Int -> "int" | Float -> "float" | Bool -> "boolean" 
+	| Coord -> "Point" | String -> "String"
+	| Piece -> "Pieces") ^ " " ^
 	(match expr with 
-	SAssign(v,ex,sc,d) -> “v = new “ 
-		(match bg with
-		Piece -> “Pieces(\” “ ^ Jexpr ex ^ “\”);” 
-		| String -> “String(\” “ ^ Jexpr ex ^ “\”);” 
-		| Coord -> “Point(” ^ Jexpr ex ^ “);”
-		| _ -> “”)
-	| _ -> Jexpr expr ^ “;”)
+	SAssign(v,ex,sc,d) -> "v = new " 
+		(match bgtype with
+		Piece -> "Pieces(\" " ^ jexpr ex ^ "\");" 
+		| String -> "String(\" " ^ jexpr ex ^ "\");" 
+		| Coord -> "Point(" ^ jexpr ex ^ ");"
+		| _ -> "")
+	| _ -> jexpr expr ^ ";")
 
 
 
-and let Jsetup  = function
-   Setbd(m) -> "new Board(" ^ string_of_int m.rows ^ "," ^ string_of_int m.cols ^ ")\n"
-  | Setpc(pc) -> “for(int i=0; i<pc.num; i++)\nPieces P = new Pieces(" ^ 
-	pc.owner ^ "," ^ pc.name ^ "," ^ string_of_int pc.ptval ^ "," ^ 
-	string_of_int pc.cloc.xc ^ "," ^ string_of_int pc.cloc.yc ^ “);
-	\nPCS.add(P);\n}”
- | Setplr(plr) -> “PLR.add(“ ^ plr ^ “);”
- | Stmt(s) -> Jstmt s ^ "\n"
+and jsetup globals  = function
+   SSetbd(m) -> "new Board(" ^ string_of_int m.srows ^ "," ^ string_of_int m.scols ^ ")\n"
+  | SSetpc(pc) -> "for(int i=0; i<" ^pc.snum^ "; i++)\nPieces P = new Pieces(" ^ 
+	pc.sowner ^ "," ^ pc.sname ^ "," ^ string_of_int pc.sptval ^ "," ^ 
+	string_of_int pc.scloc.sxc ^ "," ^ string_of_int pc.scloc.syc ^ ");
+	\nPCS.add(P);\n}"
+ | SSetplr(plr) -> "PLR.add(" ^ plr.sname ^ ");"
+ | SStmt(s) -> jstmt globals s ^ "\n"
 
 
-and let Jrules r = “static void “ ^ r.rname ^ “() {\n” ^ 
-	String.concat “” (List.map Jstmt r.rbody) ^ “\n}”
+and jrules global r = "static void " ^ r.srname ^ "() {\n" ^ 
+	String.concat "" (List.map jstmt global r.srbody) ^ "\n}"
 
-and let JprogSetup setup_list = 
-	String.concat “” (List.map Jsetup setup_list)
+and jprogSetup globals setup_list = 
+	String.concat "" (List.map jsetup globals setup_list)
 
-and let JprogRules rule_list = String.concat “” (List.map Jrules rule_list) ^ “}”
+and jprogRules globals rule_list = String.concat "" (List.map jrules global rule_list) ^ "}"
 	
 
-and let Jprogram program = function
-	let (ssetup srules sstmt) = program in
+and jprogram program =
+	let (ssetup, srules, sstmt) = program in
 	let globals = [] in
-	let setup_func = JprogSetup ssetup
-	and body = Jstmt globals sstmt
-	and rule_func = JprogRules srules
+	let setup_func = jprogSetup globals ssetup
+	and body = jstmt globals sstmt
+	and rule_func = jprogRules globals srules
 	in 
-	sprintf “public Class BG {
+	sprintf "public class BG {
 		%s
 		public static void main(String[] args) {
 			%s
 			%s
 		}
 		%s
-	} globals setup_func body rule_func
+	}" globals setup_func body rule_func
 
