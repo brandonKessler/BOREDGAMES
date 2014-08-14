@@ -17,7 +17,6 @@ rule token = parse
 | '-'      { MINUS }
 | '*'      { TIMES }
 | '/'      { DIVIDE }
-| '%'      { MOD }
 | '^'      { CAT }
 | "++"     { PLUSPLUS }
 | "--"     { MINUSMINUS }
@@ -28,7 +27,7 @@ rule token = parse
 | "<="     { LEQ }
 | ">"      { GT }
 | ">="     { GEQ }
-| "!"      { NOT }
+(* add not?*)
 | "&&"     { AND }
 | "||"     { OR }
 | "if"     { IF }
@@ -39,8 +38,6 @@ rule token = parse
 | "bool"   { BOOL }
 | "string" { STRING }
 | "double" { FLOAT }
-| "coord"  { COORD }
-| "Matrix" { MATRIX }
 | "piece"  { PIECE }
 | "new Board"  { BOARD }
 | "new Player" { PLAYER }

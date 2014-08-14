@@ -123,8 +123,10 @@ let rec check_expr env e = match e with
                                          exp) e1 in Datatype(Piece)
         | Call(Id("Pieces"), e1) -> let _ = List.map(fun exp -> check_expr env
                                           exp) e1 in Datatype(Piece)
-        | Call(Id("location"), e1) -> let _ = List.map(fun exp -> check_expr env
-                                          exp) e1 in Datatype(Coord)    
+        | Call(Id("locationx"), e1) -> let _ = List.map(fun exp -> check_expr env
+                                          exp) e1 in Datatype(Int)  
+        | Call(Id("locationy"), e1) -> let _ = List.map(fun exp -> check_expr env
+                                          exp) e1 in Datatype(Int)    
         | Call(Id("name"), e1) -> let _ = List.map(fun exp -> check_expr env
                                           exp) e1 in Datatype(String) 
         | Call(Id("point"), e1) -> let _ = List.map(fun exp -> check_expr env
@@ -181,8 +183,10 @@ let rec get_sexpr env e = match e with
                                  SCall(Id("onBoard"),s_ex_list, Global, check_expr env e)
         | Call(Id("Pieces"), e1) ->  let s_ex_list = List.map(fun exp -> get_sexpr env exp) e1 in
                                  SCall(Id("Pieces"),s_ex_list, Global, check_expr env e)
-        | Call(Id("location"), e1) ->  let s_ex_list =  List.map(fun exp -> get_sexpr env exp) e1 in
-                                 SCall(Id("location"),s_ex_list, Global, check_expr env e)    
+        | Call(Id("locationx"), e1) ->  let s_ex_list =  List.map(fun exp -> get_sexpr env exp) e1 in
+                                 SCall(Id("locationx"),s_ex_list, Global, check_expr env e)
+        | Call(Id("locationy"), e1) ->  let s_ex_list =  List.map(fun exp -> get_sexpr env exp) e1 in
+                                 SCall(Id("locationy"),s_ex_list, Global, check_expr env e)        
         | Call(Id("name"), e1) ->  let  s_ex_list = List.map(fun exp -> get_sexpr env exp) e1 in
                                  SCall(Id("name"),s_ex_list, Global, check_expr env e) 
         | Call(Id("point"), e1) -> let  s_ex_list = List.map(fun exp -> get_sexpr env exp) e1 in

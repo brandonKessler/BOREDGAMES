@@ -11,3 +11,4 @@
 ./compiler < tests/helloworld.board
 ./compiler < tests/BigTest.board
 ./compiler < tests/wrongtypecast.board
+./compiler < tests/tictactoe.board
