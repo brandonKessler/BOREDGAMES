@@ -44,7 +44,13 @@ let equality e1 e2 = match(e1, e2) with
         | (Piece, Piece) -> (Bool, true)
         | (Player, Player) -> (Bool,true)
         | (_,_) -> (Int, false)
-
+let catcheck e1 e2 = match (e1, e2) with
+        (String, Int) -> (String, true)
+        |(String, Float) -> (String, true)
+        |(String, String) -> (String, true)
+        |(Int, String) -> (String, true)
+        |(Float, String) -> (String, true)
+        | (_,_) -> (Int, false)  
 let rec get_type = function
         Datatype(t) -> t
 
@@ -78,6 +84,9 @@ let rec check_expr env e = match e with
         | Lstring(s) -> Datatype(String)
         | Id(s) -> let (_,stype, _) = try find_var env s with Not_found ->
                         raise(Error("Undeclared Variable Identifier")) in stype
+        | Cat( e1,e2) -> let type1 = check_expr env e1 and type2 = check_expr
+        env e2 in let (t,valid) = catcheck (get_type type1) (get_type type2) in
+                if valid then Datatype(t) else raise(Error("Bad Concatination"))
         | Binop(e1, op, e2) -> let type1 = check_expr env e1 and type2 =
                                  check_expr env e2 in
                                let (t, valid) = get_op_return_value op type1
@@ -155,6 +164,8 @@ let rec get_sexpr env e = match e with
         | Id(s) -> SId(s, get_var_scope env s, check_expr env e)
         | Binop(e1, op, e2) -> SBinop(get_sexpr env e1, op, get_sexpr env e2,
                 check_expr env e)
+        | Cat(e1, e2) -> SCat(get_sexpr env e1, get_sexpr env e2, check_expr env
+        e)
         | Through(e1,e2) -> SThrough(get_sexpr env e1, get_sexpr env e2,
                 check_expr env e1)
         | Incr(e1, inc) -> SIncr(get_sexpr env e1, inc, check_expr env e)
@@ -190,8 +201,8 @@ let rec get_sexpr env e = match e with
                                  SCall(Id("CurrentPlayer"),s_ex_list, Global, check_expr env e)
         | Call(id, e1) -> raise(Error("Function does not exist"))
         
-        | Baccess(id, c) -> SBaccess(get_sexpr env id, {sxc = c.xc; syc=
-                c.yc}  ,check_expr env e)
+        | Baccess(id, c) -> SBaccess(get_sexpr env id, {sxc = get_sexpr env
+        c.xc; syc= get_sexpr env c.yc}  ,check_expr env e)
         | Daccess(e1, e2) -> SDaccess(get_sexpr env e1, get_sexpr env e2,
         check_expr env e)
         | Noexpr -> SNoexpr
@@ -339,8 +350,8 @@ let check_ssetup_decl env e = match e with
         Setbd (m) -> let sm = {srows = m.rows; scols = m.cols;} in
                         (SSetbd(sm), env)
         |Setpc(p) -> let sp = {sowner = p.owner; sname = p.name; snum = p.num;
-                         sptval = p.ptval;scloc ={ sxc = p.cloc.xc; syc =
-                                 p.cloc.yc}} in (SSetpc(sp), env)
+                         sptval = p.ptval;scloc ={ sxc = get_sexpr env p.cloc.xc; syc =
+                                get_sexpr env p.cloc.yc}} in (SSetpc(sp), env)
         |Setplr(p) -> let sp = {splrname = p.plrname} in (SSetplr(sp), env)
         | Stmt(s) -> let (typed_stmt, final_env) = check_stmt env s in
                         (SStmt(typed_stmt), final_env)

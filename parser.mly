@@ -3,7 +3,7 @@
 
 %token SEMI LBRACKET RBRACKET LPAREN RPAREN LBRACE RBRACE COMMA 
 %token PLUS MINUS TIMES DIVIDE COLON DOT MOD PLUSPLUS MINUSMINUS NOT
-%token ASSIGN EQ NEQ LT LEQ GT GEQ RETURN IF ELSE LOOP EOF AND OR
+%token ASSIGN EQ NEQ LT LEQ GT GEQ RETURN IF ELSE LOOP EOF AND OR CAT
 %token INT BOOL FLOAT STRING COORD BOARD RULE PIECES PLAYER MATRIX PIECE NEXTPLAYER DICE
 %token SETUP RULES PLAY
 %token <int> INTLITERAL
@@ -80,9 +80,11 @@ pcdecl:
 
 pcargs:
    STRINGLITERAL COMMA STRINGLITERAL COMMA INTLITERAL		
-		{ {owner = $1; name = $3; num = $5; ptval = 0; cloc = {xc=0; yc=0}} }
+		{ {owner = $1; name = $3; num = $5; ptval = 0; cloc =
+                        {xc=Lint(0); yc=Lint(0)}} }
  | STRINGLITERAL COMMA STRINGLITERAL COMMA INTLITERAL COMMA INTLITERAL	
-		{ {owner = $1; name = $3; num = $5; ptval = $7; cloc = {xc=0; yc=0}} }
+		{ {owner = $1; name = $3; num = $5; ptval = $7; cloc =
+                        {xc=Lint(0); yc=Lint(0)}} }
 
 
 bdecl:
@@ -131,6 +133,7 @@ expr:
  | expr OR expr		{ Binop($1, Or, $3) }
  | expr AND expr	{ Binop($1, And, $3) }
  | expr COLON expr	{ Through($1, $3) }
+ | expr CAT expr        { Cat ($1, $3) }
  | ID ASSIGN expr	{ Assign($1, $3) }
  | expr DOT expr	{ Daccess($1, $3) }
  | expr PLUSPLUS	{ Incr($1,Plus) }
@@ -138,7 +141,7 @@ expr:
  | expr LPAREN actuals RPAREN		{ Call($1, $3) }
  | LPAREN expr RPAREN	{ $2 }
  | expr LBRACKET expr RBRACKET	{ Access($1, $3) }
- | expr LBRACKET LPAREN INTLITERAL COMMA INTLITERAL RPAREN RBRACKET	{ Baccess($1,{xc=$4;yc=$6}) }
+ | expr LBRACKET LPAREN expr COMMA expr RPAREN RBRACKET	{ Baccess($1,{xc=$4;yc=$6}) }
 
 
 actuals:

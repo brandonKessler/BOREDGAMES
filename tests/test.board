@@ -1,0 +1,14 @@
+
+Setup{
+ new Board(3,3);
+}
+
+Rules{
+
+}
+
+Play{
+int x =3;
+int y =3;
+string s = Board[(x,y)].Pieces[1].owner();
+}

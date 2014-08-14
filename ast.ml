@@ -7,22 +7,13 @@ type bg_t = Int | Float | Bool | Coord | String | Piece | Matrix | Player | Tile
 
 type inc = Plus | Minus
  
-type coord_t = {
-   xc : int;
-   yc : int;
-}
+
 
 type player_t = {
    plrname : string;
 }
 
-type piece_t = { 
-   owner : string;
-   name : string;
-   num : int;
-   ptval : int;
-   cloc : coord_t;
-}
+
 
 type mat_t = {
    rows : int;
@@ -37,6 +28,7 @@ type expr =
  | Lstring of string
  | Id of string
  | Binop of expr * op * expr
+ | Cat of expr * expr
  | Through of expr * expr
  | Incr of expr * inc
  | Assign of string * expr
@@ -45,7 +37,17 @@ type expr =
  | Baccess of expr * coord_t
  | Daccess of expr * expr
  | Noexpr
-
+and coord_t = {
+   xc : expr;
+   yc : expr;
+}
+type piece_t = { 
+   owner : string;
+   name : string;
+   num : int;
+   ptval : int;
+   cloc : coord_t;
+}
 type stmt = 
    Block of stmt list
  | Expr of expr
@@ -94,8 +96,8 @@ let rec string_of_expr = function
  | Access(e1,e2) ->
 	string_of_expr e1 ^ "[" ^ string_of_expr e2 ^ "]"
  | Baccess(e,c) -> 
-	string_of_expr e ^ "[(" ^ string_of_int c.xc ^ "," 
-	^ string_of_int c.yc ^ ")]"
+	string_of_expr e ^ "[(" ^ string_of_expr c.xc ^ "," 
+	^ string_of_expr c.yc ^ ")]"
  | Daccess(e1,e2) ->
 	string_of_expr e1 ^ "." ^ string_of_expr e2
  | Noexpr -> ""
@@ -121,8 +123,8 @@ let rec string_of_stmt = function
 let string_of_setup = function
    Setbd(m) -> "new Board(" ^ string_of_int m.rows ^ "," ^ string_of_int m.cols ^ ")\n"
   | Setpc(pc) -> "new Pieces(" ^ pc.owner ^ ", " ^ pc.name ^ ", " ^ 
-	string_of_int pc.num ^ ", (" ^ string_of_int pc.cloc.xc ^ "," ^
-	string_of_int pc.cloc.yc ^ "))\n" 
+	string_of_int pc.num ^ ", (" ^ string_of_expr pc.cloc.xc ^ "," ^
+	string_of_expr pc.cloc.yc ^ "))\n" 
  | Setplr(plr) -> "new Player(" ^ plr.plrname ^ ")\n"
  | Stmt(s) -> string_of_stmt s ^ "\n"
 

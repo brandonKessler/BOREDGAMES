@@ -4,20 +4,11 @@ type scope = Global
              | Local
 type datatype = 
      Datatype of Ast.bg_t
-type scoord_t = {
-   sxc : int;
-   syc : int;
-} 
+
 type splayer_t = {
    splrname : string;
 }
-type spiece_t = { 
-   sowner : string;
-   sname : string;
-   snum : int;
-   sptval : int;
-   scloc : scoord_t;
-}
+
 type smat_t = {
    srows : int;
    scols : int;
@@ -29,6 +20,7 @@ type sexpr =
  | SLstring of string * datatype
  | SId of string * scope * datatype
  | SBinop of sexpr * op * sexpr * datatype
+ | SCat of sexpr * sexpr * datatype
  | SThrough of sexpr * sexpr * datatype
  | SIncr of sexpr * Ast.inc * datatype
  | SAssign of string * sexpr * scope * datatype
@@ -37,7 +29,17 @@ type sexpr =
  | SBaccess of sexpr * scoord_t * datatype
  | SDaccess of sexpr * sexpr * datatype
  | SNoexpr
-
+and scoord_t = {
+   sxc : sexpr;
+   syc : sexpr;
+} 
+type spiece_t = { 
+   sowner : string;
+   sname : string;
+   snum : int;
+   sptval : int;
+   scloc : scoord_t;
+}
  type sstmt = 
    SBlock of sstmt list
  | SExpr of sexpr
