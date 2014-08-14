@@ -14,6 +14,6 @@ rule r3: return r1;;
 Play{
 int i = 2;
 if(r3){
- Output("done");
+ EndGame("done");
 }
 }

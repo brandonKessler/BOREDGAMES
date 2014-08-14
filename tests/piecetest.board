@@ -9,5 +9,5 @@ Rules{
 
 }
 Play{
- Output("done");
+ EndGame("done");
 }

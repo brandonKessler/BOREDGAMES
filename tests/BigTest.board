@@ -19,4 +19,5 @@ if(r1 && r2){
 j = i;
  Output(s);
 }
+EndGame("Done");
 }

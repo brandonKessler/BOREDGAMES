@@ -7,4 +7,5 @@ Rules{
 }
 Play{
 int i = "hello";
+EndGame("end");
 }
