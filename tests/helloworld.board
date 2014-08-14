@@ -1,10 +1,10 @@
 Setup{
- new Board(3,3);
+Output("Hello World");
 	
 }
 Rules{
 
 }
 Play{
-  EndGame("Hello World");
+Output("Bye World");
 }

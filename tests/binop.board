@@ -8,6 +8,6 @@ rule r1: return true;;
 Play{
 int i = 3 + 3;
 int a = i * i;
-EndGame("Done");
+Output("Done");
 
 }

@@ -17,6 +17,6 @@ string s = Player[1].name();
 int i = 2;
 if(r1 && r2){
 j = i;
- EndGame(s);
+ Output(s);
 }
 }

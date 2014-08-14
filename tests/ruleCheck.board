@@ -6,5 +6,5 @@ Rules{
 rule r1: return true;;
 }
 Play{
-EndGame("Bye World");
+Output("Bye World");
 }
