@@ -241,20 +241,22 @@ and jsetup = function
  | SStmt(s) -> jstmt s ^ "\n"
 
 
-and jrules r = "static void " ^ r.srname ^ "() {\n" ^ 
-	String.concat "" (List.map jstmt r.srbody) ^ "\n}"
+and jrules r = (match r with
+	SRules_Decl(rule,d) ->  
+		"static void " ^ rule.srname ^ "() {\n" ^ 
+		String.concat "" (List.map jstmt rule.srbody) ^ "\n}" )
 
 and jprogSetup setup_list = 
 	String.concat "" (List.map jsetup setup_list)
 
-and jprogRules rule_list = let (rls, dtype) = rule_list in 
-	String.concat "" (List.map jrules rls) ^ "}"
+and jprogRules rule_list =  
+	String.concat "" (List.map jrules rule_list) ^ "}"
 	
 
 and jprogram program =
 	let (ssetup, srules, sstmt) = program in
 	let setup_func = jprogSetup ssetup
-	and body = jstmt sstmt
+	and body = String.concat "" (List.map jstmt sstmt)
 	and rule_func = jprogRules srules
 	in 
 	sprintf "public class BG {
