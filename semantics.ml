@@ -65,31 +65,6 @@ let get_op_return_value ops e1 e2 =
               | And -> logic type1 type2
         in (Datatype(t), valid)
 
-let update_var env(name, datatype, value) =
-        let ((_,_,_), location) = 
-                try (fun local_scope -> ((List.find(fun (s,_,_) -> s=name)
-                local_scope),1)) env.local_scope.variables
-                with Not_found -> try( fun local_scope -> ((List.find (fun
-                        (s,_,_) -> s=name) local_scope),2))
-                env.global_scope.variables
-                with Not_found -> raise Not_found in
-        let new_envfun = match location with 
-                1 -> let new_vars = List.map (fun(n,t,v) -> if(n=name) then
-                        (name, datatype, value) else (n,t,v))
-                        env.local_scope.variables in
-                        let new_symbol_table = {parent = env.local_scope.parent;
-                        variables = new_vars;} in
-                        let new_env = {env with local_scope = new_symbol_table} in
-                        new_env
-                 |2 -> let new_vars = List.map(fun (n,t,v) -> if(n=name) then
-                         (name, datatype, value) else (n,t,v))
-                        env.global_scope.variables in 
-                        let new_symbol_table = {parent = env.local_scope.parent;
-                        variables = new_vars;} in
-                        let new_env = {env with global_scope = new_symbol_table} in
-                        new_env
-                  | _ -> raise(Error("Scope is not defined")) in new_envfun
-
 let find_var env name = try List.find(fun (s,_,_) -> s=name)
          env.local_scope.variables with Not_found -> try List.find(fun(s,_,_) ->
                  s=name) env.global_scope.variables with Not_found -> raise
@@ -102,7 +77,6 @@ let rec check_expr env e = match e with
         | Lbool(b) -> Datatype(Bool)
         | Lstring(s) -> Datatype(String)
         | Id(s) -> let (_,stype, _) = try find_var env s with Not_found ->
-                        (*check if rule id?  *)
                         raise(Error("Undeclared Variable Identifier")) in stype
         | Binop(e1, op, e2) -> let type1 = check_expr env e1 and type2 =
                                  check_expr env e2 in
@@ -126,7 +100,6 @@ let rec check_expr env e = match e with
                              (if not (type1 = type2) then (raise (Error("Types in
                              variable assignment are not matching"))));
                              check_expr env e1
-(* needs to work with pieces and player access *)
         | Access(e1, e2) ->  let typee2 = check_expr env e2 and type1 =
                 check_expr env e1 in
                                 if typee2 = Datatype(Int) then type1 else raise
@@ -187,7 +160,6 @@ let rec get_sexpr env e = match e with
         | Incr(e1, inc) -> SIncr(get_sexpr env e1, inc, check_expr env e)
         | Assign(s, e1) -> SAssign(s, get_sexpr env e1, get_var_scope env s,
                  check_expr env e1)
-       (*stringofexpr*)
         | Call(Id("Output"), e1) -> let  s_ex_list = List.map(fun exp -> get_sexpr env exp) e1 in
                                  SCall(Id("Output"),s_ex_list, Global, check_expr env e)
         | Call(Id("Input"), e1) -> let  s_ex_list = List.map(fun exp -> get_sexpr env exp) e1 in
@@ -245,37 +217,14 @@ let get_name_type_value_from_decl decl = match decl with
         Decl(datatype, Id(s)) -> (s, datatype, None)
         | Decl(datatype, Assign(v,e)) -> (v, datatype, Some(e))
         | _ ->raise(Error("Bad variable declaration"))
-let get_name_type_from_var env = function
-        Decl(datatype, Id(s)) -> (s, datatype, None)
-       | Decl(datatype, Assign(v,e)) -> (v, datatype, Some(e))
-       | _ ->raise(Error("Bad variable declaration"))
-let add_to_var_table env name t v = (* does local add ? change to global when in
-play?*)
-        let new_vars = (name,t,v):: env.local_scope.variables in
-        let new_sym_table = {parent = env.local_scope.parent; variables =
-                new_vars;} in
-        let new_env = {env with local_scope = new_sym_table} in
-        new_env
+
 let add_to_global_table env name t v = 
          let new_vars = (name,t,v):: env.global_scope.variables in
         let new_sym_table = {parent = env.global_scope.parent; variables =
                 new_vars;} in
         let new_env = {env with global_scope = new_sym_table} in
         new_env
-let check_assignment t1 t2 = match (t1, t2) with
-        (Int, Int) -> true
-       | (Float, Float) -> true
-       | (Int, Float) -> true
-       | (Float, Int) -> true
-       | (Bool, Bool) -> true
-       | (String, String) -> true
-       | (Player, Player) -> true
-       | (Piece, Piece) -> true
-       | (_,_) -> false
-let match_var_type env v t = 
-        let(name, ty, value) = find_var env v in
-        if(t <> ty) then false else true
-       
+      
 let check_rule_return env = 
         (if(false = env.return_seen && env.return_type = Datatype(Bool)) then
                 raise(Error("Missing return statement in rule")));
@@ -287,43 +236,9 @@ let empty_environment = {return_type = Datatype(String); return_seen = false;
                 location = "Setup"; global_scope = empty_table_initialization; local_scope =
                 empty_table_initialization; rule_scope = empty_rule_table_initialization}
 
-let empty_environment = {return_type = Datatype(String); return_seen = false;
-                location = "Rules&Play"; global_scope = empty_table_initialization; local_scope =
-                empty_table_initialization; rule_scope = empty_rule_table_initialization}
-
 let find_global_variable env name = 
         try List.find(fun (s,_,_) -> s=name) env.global_scope.variables with 
-        Not_found -> raise Not_found
-(*let initialize_globals (globals, env) decl = 
-        let(name, ty) = get_name_type_from_decl decl in 
-                let((_,dt,_), found) = try(fun f -> ((f env name), true))
-                find_global_variable with Not_found -> ((name, Datatype(ty), None), false) in
-                let ret = if(found = false) then match decl with
-                        Decl(datatype, Id(s)) -> let(name, ty, _) =
-                                get_name_type_from_var env decl in
-                                let new_env = add_to_global_table env name
-                                Datatype(ty)
-                                None in
-                                (SDecl(datatype,Id(s), Global) :: globals,
-                                new_env)
-                        | Decl(datatype, Assign(v,e)) -> let t1 =
-                                get_type_from_datatype (datatype) and t2 =
-                                        get_type_from_datatype
-                                        (check_expr env e) in
-                                        if(t1 = t2) then let (n,t,v) =
-                                                get_name_type_val_from_decl decl
-                                                 in let new_env =
-                                                         add_to_global_table env
-                                                         n t v in
-                                                 (SDecl(datatype, get_sexpr env,
-                                                 Assign(v,e) , Global) ::
-                                                         globals, new_env)
-                                        else raise (Error("Mismatched type on
-                                        variable declaration"))
-                                    else raise (Error("Multiple Declarations"))
-                in ret *)
-let find_local_variable env name = try List.find (fun (s,_,_) -> s=name)
-                env.local_scope.variables with Not_found -> raise Not_found   
+        Not_found -> raise Not_found  
 let rec check_stmt env stmt = match stmt with 
         Block(stmt_list) -> let new_env = env in let getter(env, acc) s = let
                         (st, ne) = check_stmt env s in (ne, st::acc) in let (ls, st) =
@@ -353,10 +268,7 @@ let rec check_stmt env stmt = match stmt with
                                  (Decl(datatype,e)) in 
                                 let ((_,dt,_), found) = try(fun f -> ((f env
                                 name), true)) find_global_variable with Not_found
-                                -> (*let ((_,dtg,_), foundg) =
-                                        try(fun fg -> ((fg env
-                                name), true)) find_global_variable with
-                                Not_found ->*) ((name, Datatype(ty), None) , false) in 
+                                ->  ((name, Datatype(ty), None) , false) in 
                                 let ret = if(found = false) then
                                         match e with 
                                         Id(s) -> let sdecl = get_sdecl env decl
