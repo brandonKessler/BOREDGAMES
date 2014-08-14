@@ -1,0 +1,19 @@
+
+Setup{
+int a;
+new Board(3,3);
+}
+
+Rules{
+rule r1:;
+}
+
+Play{
+int b = 2;
+a=3;
+if (r1) {
+	Board[(4,5)];
+}
+Player.Pieces[2].loc;
+f(a,b);
+}
