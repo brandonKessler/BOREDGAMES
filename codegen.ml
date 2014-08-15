@@ -4,13 +4,14 @@ open Printf
 open Semantics 
 
 
-
 let rec jexpr = function
    SLint(l,d) -> string_of_int l
  | SLfloat(f,d) -> string_of_float f
  | SLbool(b,d) -> string_of_bool b
  | SLstring(st,d) -> st
- | SId(s,scope, d) -> s
+ | SId(s,scope, d) -> (match (String.get s 0) with
+	'R' -> s^"()"
+	| _ -> s) 
  | SBinop(e1, o, e2, d) ->
 	(match d with
 	Datatype(Piece) -> jexpr e1 ^ ".equals(" ^ jexpr e2 ^ ")"
@@ -45,11 +46,13 @@ let rec jexpr = function
 			";\nPC.loc.y = " ^ jexpr y 
 		| _ -> "Invalid Add Arguments" )
 	| "Input" -> (match args with
-		[a] -> jexpr a ^ " = " ^ (match d with
-			Datatype(Int) -> "Integer.parseInt(input.nextLine());"
-			| Datatype(String) -> "input.nextLine();"
-			| Datatype(Float) -> "Double.parseDouble(input.nextLine());" 
-			| _ -> "Cannot Accept Input")
+		[a] -> jexpr a ^ " = " ^ (match a with
+			SId(v,sc,dt) -> (match dt with 
+				Datatype(Int) -> "Integer.parseInt(input.nextLine());"
+				| Datatype(String) -> "input.nextLine();"
+				| Datatype(Float) -> "Double.parseDouble(input.nextLine());" 
+				| _ -> "Cannot Accept Input")
+			| _ -> "Bad Input" )
 		| _ -> "Invalid Input Arguments" )
 	| "Output" -> (match args with
 		[a] -> "System.out.println(" ^ jexpr a ^ ")"
@@ -69,8 +72,10 @@ let rec jexpr = function
 
  | SDaccess(e1,e2,d) -> print_string "SDACCESS";
 	(match e1 with
-	SBaccess(expr,coord,d) -> 
-		boardAccess (jexpr coord.sxc) (jexpr coord.syc) e2
+	SBaccess(expr,coord,d) -> (match jexpr expr with
+		"Player" -> playerDot e2
+		| "Board" -> boardAccess (jexpr coord.sxc) (jexpr coord.syc) e2
+		| _ -> "test err!!!!" )
 	| SId(keyword,scope,d) -> (match keyword with
 		"Player" -> playerDot e2
 		| _ -> "Invalid Left Dot Access" )
@@ -86,6 +91,17 @@ let rec jexpr = function
 			| SCall(func, args,scope,d) -> 
 			   boardFunctionDot (jexpr coord.sxc) (jexpr coord.syc) func args e2 
 			| _ -> "Invalid Board Access")
+		| SId(plr,scope,d) -> playerDotInvFunc [] ^
+			(match e2 with
+			SCall(func, args,scope,d) -> (match Ast.string_of_expr func with
+				"owner" -> ".owner"
+				| "name" -> ".name"
+				| "point" -> ".val"
+				| "locationx" -> ".loc.x"
+				| "locationy" -> ".loc.y"
+				| _ -> "Invalid Pieces field")
+			| _ -> "Invalid Pieces Access")
+			 
 		| _ -> "Invalid Board Dot Argument" )
 		
 	| _ -> "Invalid Left Dot Access2" )
@@ -112,7 +128,7 @@ and playerAccessDot plr_pos e2 =
 and playerDot e2 = 
 	(match e2 with 
 	SCall(func,args,scope,d) -> (match Ast.string_of_expr func with
-		"name" -> "Player.get(curPlayer)"
+		"name" -> "Players.get(curPlayer)"
 		| "inventory" -> playerDotInvFunc args 
 		| "onBoard" -> playerDotBdFunc args
 		| _ -> "Invalid Player Function Access" )
@@ -126,9 +142,10 @@ and playerDot e2 =
 
 
 
-and playerDotInvFunc args = 
+and playerDotInvFunc args  = 
 	(match args with
-	[pc_n] -> "PCS.get( Crd_Plr_Pcn(PCS,0,0,Players.get(curPlayer)," ^ 
+	[] -> "PCS.get( Crd_Plr_Pos(PCS,0,0,Players.get(curPlayer),1) )"
+	| [pc_n] -> "PCS.get( Crd_Plr_Pcn(PCS,0,0,Players.get(curPlayer)," ^ 
 		jexpr pc_n ^") )"
 	| [pl_n; pc_n] -> "PCS.get( Crd_Plr_Pcn(PCS,0,0,Players.get(curPlayer)," ^ 
 		jexpr pc_n ^") )"
@@ -230,10 +247,14 @@ let rec jstmt = function
  | SDecl(bgtype,expr,scope) ->
 	(match scope with
 	Global -> ""
-	
 	| _ -> declare bgtype expr )
 
  | SNextPlayer -> "NP();" 
+
+and jrulestmt stmt = (match stmt with 
+	SDecl(bgtype,expr,scope) -> declare bgtype expr
+	| _ -> jstmt stmt ) 
+
 
 and declare bgtype expr = 
 	(match bgtype with
@@ -266,7 +287,7 @@ and jsetup = function
 and jrules r = (match r with
 	SRules_Decl(rule,d) ->  
 		"static boolean " ^ rule.srname ^ "() {\n" ^ 
-		String.concat "\n" (List.rev(List.map jstmt rule.srbody)) ^ "}" )
+		String.concat "\n" (List.rev(List.map jrulestmt rule.srbody)) ^ "}" )
 
 and jprogSetup setup_list = 
 	String.concat "\n" (List.rev(List.map jsetup setup_list))
@@ -292,12 +313,13 @@ and jprogram program =
 "public class BG {
 	
 Scanner input = new Scanner (System.in);
-public LinkedList<String> Players = new LinkedList<String>();
-public LinkedList<Pieces> PCS = new LinkedList<Pieces>();
+public static LinkedList<String> Players = new LinkedList<String>();
+public static LinkedList<Pieces> PCS = new LinkedList<Pieces>();
 public static int curPlayer = 0;
 public static int rows;
 public static int cols;
-Pieces PC;
+public static Pieces PC;
+
 static void setup() {
 %s
 }
@@ -316,4 +338,5 @@ while(true) {
 
 }
 " setup_func globals body rule_func
+
 
