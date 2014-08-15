@@ -8,14 +8,15 @@ Setup{
 }
 Rules{
  
- rule R1: if(x < 3 && x > 0) { return true; } else { return false;};
-rule R2: if(y < 3 && y > 0) { return true; } else { return false;};			 
- rule R3: if(R1 && R2) { return true;} else {return false;};
+ rule R1: if(x < 4 && x > 0) { return true; } else { return false;};
+rule R2: if(y < 4 && y > 0) { return true; } else { return false;};			 
+ rule R3: if(R1 && R2 && R4) { return true;} else {return false;};
  rule R4: return Board[(x,y)].unoccupied();;
 rule R5: int i = 1;
  	int j = 1;
         bool full = true; 
 	loop(i < 4) { 
+	j=1;
 	loop (j < 4) { 
 	if (Board[(i,j)].unoccupied()) { 
 	full = false; } 
@@ -29,6 +30,7 @@ rule R6: int k = 1;
 		  /* every row */
 		  loop(k<4) {
 			/* every col */
+			h=1;
 			loop(h<4) {
 				if (Board[(h,k)].unoccupied()) {
 					win = false;
@@ -44,6 +46,7 @@ rule R6: int k = 1;
 			}
 			if (val==3) {
 				win = true;
+				return win;
 			}
 			else {
 				val = 0;
@@ -51,28 +54,37 @@ rule R6: int k = 1;
 			}
 		   }
 		   return win;;
-rule R7: int l = 1;
-		  int m = 1;
-		  bool winChance;
-		  loop(l < 4){/*every column*/
-			winChance = true;
-			loop(m < 4){/*every row*/
-if(Board[(m,l)].unoccupied() == false) {
-	if(winChance == true && (false == (Board[(m, l)].Pieces[1].name() .=   Player.inventory().name() )) )
-	{/*checks if the first piece on the board at j,i has the same name as the first piece in the current player's inventory*/
-		winChance = false;	
-	}
-}
-else { winChance = false;}
-				
-				m = m + 1;
+rule R7: int m = 1;
+	         int l = 1;
+	         int val = 0;
+		  bool win = false;
+		  /* every row */
+		  loop(m<4) {
+			/* every col */
+			l=1;
+			loop(l<4) {
+				if (Board[(h,k)].unoccupied()) {
+					win = false;
+				}
+				else {
+				if (Board[(m,l)].Pieces[1].owner() .= Player.name() ) {/* checks if    the owner of the first piece on the board at i,j is owned by the current Player*/
+					val = val+1;
+				}
+				else {
+					val = val;
+				}}
+				l = l+1;
 			}
-			if(winChance == true){
-				return true;	
-			}	
-		        l = l + 1;
-		  }
-		  return false;;
+			if (val==3) {
+				win = true;
+				return win;
+			}
+			else {
+				val = 0;
+				m = m+1;
+			}
+		   }
+		   return win;;
 
 /* diagonal win */
 	rule R8: int n=1;
