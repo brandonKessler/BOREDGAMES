@@ -97,15 +97,15 @@ and playerAccessDot plr_pos e2 =
 	SCall(func,args,scope,d) -> (match Ast.string_of_expr func with
 		"name" -> "Player.get(" ^ jexpr plr_pos ^ ")"
 		| "inventory" -> "PCS.get( Crd_Plr_Pos(PCS,0,0,Players.get(" ^ 
-			jexpr plr_pos ^ "), 1 ) )"
+			jexpr plr_pos ^ "-1), 1 ) )"
 		| "onBoard" -> "PCS.get( Crd_Plr_Pos_Gt(PCS,0,0,Players.get(" ^
-			jexpr plr_pos ^ "), 1) )"
+			jexpr plr_pos ^ "-1), 1) )"
 		| _ -> "Invalid Player Function Access" )
 	| SAccess(keyword, pos,d) -> (match jexpr keyword with
 		"inventory" -> "PCS.get( Crd_Plr_Pos(PCS,0,0,Players.get(" ^
-			jexpr plr_pos ^ ")," ^ jexpr pos ^ ") )"
+			jexpr plr_pos ^ "-1)," ^ jexpr pos ^ ") )"
 		| "onBoard" -> "PCS.get( Crd_Plr_Pos_Gt(PCS,0,0,Players.get(" ^
-			jexpr plr_pos ^ ")," ^ jexpr pos ^ ") )"
+			jexpr plr_pos ^ "-1)," ^ jexpr pos ^ ") )"
 		| _ -> "Invalid Player Array Access" )
 	| _ -> "Invalid Player Access" )
 
