@@ -28,7 +28,7 @@ rule token = parse
 | ">"      { GT }
 | ">="     { GEQ }
 (* add not?*)
-| ".equals" { DEQ } 
+| ".=" { DEQ } 
 | "&&"     { AND }
 | "||"     { OR }
 | "if"     { IF }

@@ -16,9 +16,9 @@ let rec jexpr = function
 	(match o with
 	  Add -> "+ "^jexpr e2 | Sub -> "- "^jexpr e2 | Mult -> "* "^jexpr e2
 	 | Div -> "/ "^jexpr e2| Equal -> "== "^jexpr e2 | Neq -> "!= "^jexpr e2
-       	| Less -> "< "^jexpr e2 | Leq -> "<= "^jexpr e2 | Greater -> "> "^jexpre2 
+       	| Less -> "< "^jexpr e2 | Leq -> "<= "^jexpr e2 | Greater -> "> "^jexpr e2 
 	| Geq -> ">= "^jexpr e2| Or -> "|| "^jexpr e2 | And -> "&& "^ jexpr e2
-	| Deq-> ".equals(" ^ jexpr e2 ")")
+	| Dequal -> ".equals(" ^ jexpr e2 ^")")
  | SCat(e1,e2,d) -> jexpr e1 ^ "+" ^ jexpr e2
 
  | SThrough(e1,e2,d) -> "for (int IND=" ^ jexpr e1^ "; IND<" ^
