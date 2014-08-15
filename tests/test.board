@@ -10,6 +10,7 @@ Rules{
 Play{
 int x =3;
 int y =3;
-string s = Board[(x,y)].Pieces[1].owner();
+string s;
+s = Board[(x,y)].Pieces[1].owner();
 EndGame("done");
 }
