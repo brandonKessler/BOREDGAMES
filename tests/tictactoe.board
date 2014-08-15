@@ -94,8 +94,26 @@ if(winChance == true && Board[(m, l)].Pieces[1].name() !=   Player.inventory().n
 Play{
 	int q = 1;
 loop(1:3){/*displays the current board on the screen*/
-
-	Output(Board[(q,1)].Pieces[1].name() ^  Board[(q,2)].Pieces[1].name() ^ Board[(q,3)].Pieces[1].name());
+	String output = "";
+	if(Board[(q,1)].unoccupied()){
+		output =  " _ ";
+	}
+	else{
+		output = Board[(q,1)].Pieces[1].name()
+	}
+	if(Board[(q,2)].unoccupied()){
+		output = output ^  " _ ";
+	}
+	else{
+		output = output ^ Board[(q,2)].Pieces[1].name()
+	}
+	if(Board[(q,3)].unoccupied()){
+		output = output ^  " _ ";
+	}
+	else{
+		output = output ^ Board[(q,3)].Pieces[1].name()
+	}
+	Output(output);
          q++;
 }
 
