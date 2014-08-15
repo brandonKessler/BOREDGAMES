@@ -57,7 +57,7 @@ rule R7: int l = 1;
 		  loop(l < 4){/*every column*/
 			winChance = true;
 			loop(m < 4){/*every row*/
-if(winChance == true && false == (Board[(m, l)].Pieces[1].name() .=   Player.inventory().name())){/*checks if the first piece on the board at j,i has the same name as the first piece in the current player's inventory*/
+if(winChance == true && (false == (Board[(m, l)].Pieces[1].name() .=   Player.inventory().name() )) ){/*checks if the first piece on the board at j,i has the same name as the first piece in the current player's inventory*/
 					winChance = false;	
 				}
 				m = m + 1;
