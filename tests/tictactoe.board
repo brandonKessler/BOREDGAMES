@@ -94,7 +94,7 @@ rule R7: int m7 = 1;
 			if (Board[(n,n)].unoccupied() == false && Board[(n,n)].Pieces[1].name() .= Player.inventory().name()){ /*checks if the first piece on the board at location i,j has the same name as the first piece in the current player's inventory*/
 				a = a+1;
 			}
-			n = n + 1;
+			n = n +I 1;
 		  }
 		  if (a==3){
 			return true;
@@ -127,23 +127,23 @@ Play{
 	string output;
 	int q = 1;
 loop(1:3){/*displays the current board on the screen*/
-	if(Board[(q,1)].unoccupied()){
+	if(Board[(1,q)].unoccupied()){
 		output =  " _ ";
 	}
 	else{
-		output = Board[(q,1)].Pieces[1].name();
+		output = Board[(1,q)].Pieces[1].name();
 	}
-	if(Board[(q,2)].unoccupied()){
+	if(Board[(2,q)].unoccupied()){
 		output = output ^  " _ ";
 	}
 	else{
-		output = output ^ Board[(q,2)].Pieces[1].name();
+		output = output ^ Board[(2,q)].Pieces[1].name();
 	}
-	if(Board[(q,3)].unoccupied()){
+	if(Board[(3,q)].unoccupied()){
 		output = output ^  " _ ";
 	}
 	else{
-		output = output ^ Board[(q,3)].Pieces[1].name();
+		output = output ^ Board[(3,q)].Pieces[1].name();
 	}
 	Output(output);
          q++;
