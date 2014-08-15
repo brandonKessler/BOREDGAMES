@@ -12,17 +12,13 @@ let rec jexpr = function
  | SId(s,scope, d) -> (match (String.get s 0) with
 	'R' -> s^"()"
 	| _ -> s) 
- | SBinop(e1, o, e2, d) ->
-	(match d with
-	Datatype(Piece) -> jexpr e1 ^ ".equals(" ^ jexpr e2 ^ ")"
-	| Datatype(String) -> jexpr e1 ^ ".equals(" ^ jexpr e2 ^ ")" 
-	| _ -> jexpr e1 ^ " " ^
-		(match o with
-		  Add -> "+" | Sub -> "-" | Mult -> "*" | Div -> "/"
-		| Equal -> "==" | Neq -> "!="
-        	| Less -> "<" | Leq -> "<=" | Greater -> ">" | Geq -> ">="
-		| Or -> "||" | And -> "&&") ^ " " ^
-      		jexpr e2)
+ | SBinop(e1, o, e2, d) -> jexpr e1 ^
+	(match o with
+	  Add -> "+ "^jexpr e2 | Sub -> "- "^jexpr e2 | Mult -> "* "^jexpr e2
+	 | Div -> "/ "^jexpr e2| Equal -> "== "^jexpr e2 | Neq -> "!= "^jexpr e2
+       	| Less -> "< "^jexpr e2 | Leq -> "<= "^jexpr e2 | Greater -> "> "^jexpre2 
+	| Geq -> ">= "^jexpr e2| Or -> "|| "^jexpr e2 | And -> "&& "^ jexpr e2
+	| Deq-> ".equals(" ^ jexpr e2 ")")
  | SCat(e1,e2,d) -> jexpr e1 ^ "+" ^ jexpr e2
 
  | SThrough(e1,e2,d) -> "for (int IND=" ^ jexpr e1^ "; IND<" ^
@@ -215,7 +211,7 @@ and boardFunctionPieces x y args =
 
 and boardFunction x y func args = 
 	(match Ast.string_of_expr func with
-	"unoccupied" -> "Crd(PCS,"^x^","^y^")>-1"
+	"unoccupied" -> "Crd(PCS,"^x^","^y^")==-1"
 	| "Pieces" -> boardFunctionPieces x y args
 	| _ -> "Invalid Board Function" )
 
@@ -240,7 +236,7 @@ let rec jstmt = function
 
  | SLoop(e, s) -> 
 	(match e with
-	   SThrough(e1,e2,d) -> "for(int IND=" ^ jexpr e1 ^ "; IND<" ^
+	   SThrough(e1,e2,d) -> "for(int IND=" ^ jexpr e1 ^ "; IND<=" ^
 			jexpr e2 ^ "; IND++)" ^ jstmt s 
 	| e -> "while (" ^ jexpr e ^ ") " ^ jstmt s)
 

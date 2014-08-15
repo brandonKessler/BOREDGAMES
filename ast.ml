@@ -1,6 +1,6 @@
 
 
-type op = Add | Sub | Mult | Div | Equal | Neq | Less | Leq | Greater | Geq | Or | And
+type op = Add | Sub | Mult | Div | Equal | Neq | Less | Leq | Greater | Geq | Or | And | Dequal
 
 type bg_t = Int | Float | Bool| String | Piece | Player | Tile  | Rule
 
