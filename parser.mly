@@ -24,8 +24,9 @@
 %left TIMES DIVIDE
 %left MINUSMINUS PLUSPLUS 
 %nonassoc COLON /* is this right */
-%nonassoc LPAREN RPAREN RBRACKET LBRACKET
 %left DOT
+%nonassoc LPAREN RPAREN RBRACKET LBRACKET
+
 
 %start program
 %type <Ast.program> program

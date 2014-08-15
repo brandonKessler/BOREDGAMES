@@ -59,13 +59,15 @@ let rec jexpr = function
 		| _ -> "Invalid EndGame Arguments")
 	| _ -> "blah")
 
- | SBaccess(e1,c,d) -> print_string "in SBaccess\n"; "PCS.get( Crd(PCS," ^ jexpr c.sxc ^ "," ^
+ | SBaccess(e1,c,d) -> "PCS.get( Crd(PCS," ^ jexpr c.sxc ^ "," ^
 	jexpr c.syc ^ ") )"
- | SAccess(key,pos,d) -> (match jexpr key with
+ | SAccess(key,pos,d) -> print_string ("SACCESS" ^jexpr key); (match jexpr key with
 	"Player" -> "Players.get(" ^ jexpr pos ^ ")"
+	| "Pieces" -> print_string "Pieces!!!!"; "Piece test"
+	| "Board" -> print_string "Board!!!!!"; "Board test"
 	| _ -> "Invalid Access" )
 
- | SDaccess(e1,e2,d) -> print_string ("in SDaccess\n" ^ jexpr e1 ^ "\n\n" ^ jexpr e2 ^ "\n");
+ | SDaccess(e1,e2,d) -> print_string "SDACCESS";
 	(match e1 with
 	SBaccess(expr,coord,d) -> 
 		boardAccess (jexpr coord.sxc) (jexpr coord.syc) e2
@@ -75,6 +77,17 @@ let rec jexpr = function
 	| SAccess(keyword,pos,d) -> (match jexpr keyword with
 		"Player" -> playerAccessDot pos e2
 		| _ -> "")
+	| SDaccess(ex1,ex2,d) -> print_string "sdaccess in sdaccess";
+		(match ex1 with
+		SBaccess(expr,coord,d) -> 
+			(match ex2 with
+			SAccess(keyword,pos,d) -> 
+			   boardAccessDot (jexpr coord.sxc) (jexpr coord.syc) keyword pos e2
+			| SCall(func, args,scope,d) -> 
+			   boardFunctionDot (jexpr coord.sxc) (jexpr coord.syc) func args e2 
+			| _ -> "Invalid Board Access")
+		| _ -> "Invalid Board Dot Argument" )
+		
 	| _ -> "Invalid Left Dot Access2" )
 		
  | SNoexpr -> ""
