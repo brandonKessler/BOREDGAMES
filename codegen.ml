@@ -66,19 +66,18 @@ let rec jexpr = function
 	| "Board" -> print_string "Board!!!!!"; "Board test"
 	| _ -> "Invalid Access" )
 
- | SDaccess(e1,e2,d) -> print_string "SDACCESS";
+ | SDaccess(e1,e2,d) ->
 	(match e1 with
 	SBaccess(expr,coord,d) -> (match jexpr expr with
 		"Player" -> playerDot e2
-		| "Board" -> boardAccess (jexpr coord.sxc) (jexpr coord.syc) e2
-		| _ -> "test err!!!!" )
+		| "Board" -> boardAccess (jexpr coord.sxc) (jexpr coord.syc) e2)
 	| SId(keyword,scope,d) -> (match keyword with
 		"Player" -> playerDot e2
 		| _ -> "Invalid Left Dot Access" )
 	| SAccess(keyword,pos,d) -> (match jexpr keyword with
 		"Player" -> playerAccessDot pos e2
 		| _ -> "")
-	| SDaccess(ex1,ex2,d) -> print_string "sdaccess in sdaccess";
+	| SDaccess(ex1,ex2,d) ->
 		(match ex1 with
 		SBaccess(expr,coord,d) -> 
 			(match ex2 with
