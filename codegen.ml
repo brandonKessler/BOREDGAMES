@@ -306,9 +306,14 @@ and jprogram program =
 	and rule_func = jprogRules srules
 	in 
 	sprintf 
-"public class BG {
+"
+import java.awt.Point;
+import java.util.LinkedList;
+import java.util.Scanner;
+
+public class BG {
 	
-Scanner input = new Scanner (System.in);
+static Scanner input = new Scanner (System.in);
 public static LinkedList<String> Players = new LinkedList<String>();
 public static LinkedList<Pieces> PCS = new LinkedList<Pieces>();
 public static int curPlayer = 0;
@@ -331,6 +336,161 @@ while(true) {
 }
 
 %s
+
+/*BoredGame helper functions*/
+static void NP () {
+	curPlayer++;
+	if (curPlayer > Players.size()-1) {
+		curPlayer=0;
+	}
+}
+static int Crd_Plr_SearchCt (LinkedList<Pieces> plist, int x, int y, String plr) {
+	int count = 0;
+	Point test = new Point(x,y);
+	for (int i=0; i<plist.size(); i++){
+		Pieces t = plist.get(i);
+		if (t.loc.equals(test)) {
+			count++;
+		}
+	}
+	return count;
+}
+static int Crd_Plr_SearchCt_Gt (LinkedList<Pieces> plist, int x, int y, String plr) {
+	int count = 0;
+	Point test = new Point(x,y);
+	for (int i=0; i<plist.size(); i++){
+		Pieces t = plist.get(i);
+		if (t.loc.x > test.x && t.loc.y>test.y) {
+			count++;
+		}
+	}
+	return count;
+}
+static int Pc_Pos (LinkedList<Pieces> plist, Pieces p, int pos) {
+	int count = pos;
+	for (int i=0; i<plist.size(); i++){
+		Pieces t = plist.get(i);
+		if (t.equals(p)) {
+			if (count==1) {
+				return i;
+			}
+			count--;
+		}
+		
+	}
+	return -1;
+}
+static int Crd_Plr_Pos (LinkedList<Pieces> plist, int x, int y, String plr, int pos) {
+	int count = pos;
+	Point test = new Point(x,y);
+	for (int i=0; i<plist.size(); i++){
+		Pieces t = plist.get(i);
+		if (t.loc.equals(test) && t.owner.equals(plr)) {
+			if (count==1) {
+				return i;
+			}
+			count--;
+		}
+	}
+	return -1;
+}
+static int Crd_Plr_Pos_Gt (LinkedList<Pieces> plist, int x, int y, String plr, int pos) {
+	int count = pos;
+	Point test = new Point(x,y);
+	for (int i=0; i<plist.size(); i++){
+		Pieces t = plist.get(i);
+		if (t.loc.x > test.x && t.loc.y > test.y && t.owner.equals(plr)) {
+			if (count==1) {
+				return i;
+			}
+			count--;
+		}
+	}
+	return -1;
+}
+static int Crd_Pos (LinkedList<Pieces> plist, int x, int y, int pos) {
+	int count = pos;
+	Point test = new Point(x,y);
+	for (int i=0; i<plist.size(); i++){
+		Pieces t = plist.get(i);
+		if (t.loc.equals(test)) {
+			if (count==1) {
+				return i;
+			}
+			count--;
+		}
+	}
+	return -1;
+}
+static int Crd_Plr (LinkedList<Pieces> plist, int x, int y, String plr) {
+	Point test = new Point(x,y);
+	for (int i=0; i<plist.size(); i++){
+		Pieces t = plist.get(i);
+		if (t.loc.equals(test) && t.owner.equals(plr)) {
+			return i;
+		}
+	}
+	return -1;
+}
+static int Crd_Plr_Pcn (LinkedList<Pieces> plist, int x, int y, String plr, String pcn) {
+	Point test = new Point(x,y);
+	for (int i=0; i<plist.size(); i++){
+		Pieces t = plist.get(i);
+		if (t.loc.equals(test) && t.owner.equals(plr) && t.name.equals(pcn)) {
+			return i;
+		}
+	}
+	return -1;
+}
+static int Pcn (LinkedList<Pieces> plist, String pcn) {
+	for (int i=0; i<plist.size(); i++){
+		Pieces t = plist.get(i);
+		if (t.name.equals(pcn)) {
+			return i;
+		}
+	}
+	return -1;
+}
+static int Plr_Pcn (LinkedList<Pieces> plist, String plr, String pcn) {
+	for (int i=0; i<plist.size(); i++){
+		Pieces t = plist.get(i);
+		if (t.name.equals(pcn) && t.owner.equals(plr)) {
+			return i;
+		}
+	}
+	return -1;
+}
+static int Crd_Pcn (LinkedList<Pieces> plist, int x, int y, String pcn) {
+	Point test = new Point(x,y);
+	for (int i=0; i<plist.size(); i++){
+		Pieces t = plist.get(i);
+		if (t.loc.equals(test) && t.name.equals(pcn)) {
+			return i;
+		}
+	}
+	return -1;
+}
+static int Crd (LinkedList<Pieces> plist, int x, int y) {
+	Point test = new Point(x,y);
+	for (int i=0; i<plist.size(); i++){
+		Pieces t = plist.get(i);
+		if (t.loc.equals(test)) {
+			return i;
+		}
+	}
+	return -1;
+}
+static int Crd_Plr_Gt (LinkedList<Pieces> plist, int x, int y,String plr) {
+	Point test = new Point(x,y);
+	for (int i=0; i<plist.size(); i++){
+		Pieces t = plist.get(i);
+		if (t.loc.x>test.x && t.loc.y>test.y && t.owner.equals(plr)) {
+			return i;
+		}
+
+	}
+	return -1;
+}
 
 }
 " setup_func globals body rule_func
