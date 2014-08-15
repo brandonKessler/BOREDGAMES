@@ -6,4 +6,7 @@ let ast = Parser.program Scanner.token lexbuf in
 in print_string listing in *)
 let sast = Semantics.check_program ast in
 let pgm = Codegen.jprogram sast in
-print_string pgm
+let output = open_out "BG.java" in
+output_string output pgm
+(*print_string "done \n"*)
+
