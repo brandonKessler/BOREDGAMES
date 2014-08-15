@@ -242,7 +242,7 @@ and declare bgtype expr =
 and jsetup = function
    SSetbd(m) -> "rows = " ^ string_of_int m.srows ^ "; cols = " 
 	^ string_of_int m.scols ^ ";"
-  | SSetpc(pc) -> "for(int i=0; i<" ^ string_of_int pc.snum^ "; i++) {\n" ^ 
+  | SSetpc(pc) -> "for(int IND=0; IND<" ^ string_of_int pc.snum^ "; IND++) {\n" ^ 
 	"Pieces P = new Pieces(" ^ pc.sowner ^ "," ^ pc.sname ^ "," ^ 
 	string_of_int pc.sptval ^ "," ^ jexpr pc.scloc.sxc ^ "," ^ 
 	jexpr pc.scloc.syc ^ ");\nPCS.add(P);}"
@@ -252,7 +252,7 @@ and jsetup = function
 
 and jrules r = (match r with
 	SRules_Decl(rule,d) ->  
-		"static void " ^ rule.srname ^ "() {\n" ^ 
+		"static boolean " ^ rule.srname ^ "() {\n" ^ 
 		String.concat "\n" (List.rev(List.map jstmt rule.srbody)) ^ "}" )
 
 and jprogSetup setup_list = 
