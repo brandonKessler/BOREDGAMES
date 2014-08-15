@@ -59,13 +59,13 @@ let rec jexpr = function
 		| _ -> "Invalid EndGame Arguments")
 	| _ -> "blah")
 
- | SBaccess(e1,c,d) -> "PCS.get( Crd(PCS," ^ jexpr c.sxc ^ "," ^
+ | SBaccess(e1,c,d) -> print_string "in SBaccess\n"; "PCS.get( Crd(PCS," ^ jexpr c.sxc ^ "," ^
 	jexpr c.syc ^ ") )"
  | SAccess(key,pos,d) -> (match jexpr key with
 	"Player" -> "Players.get(" ^ jexpr pos ^ ")"
 	| _ -> "Invalid Access" )
 
- | SDaccess(e1,e2,d) ->
+ | SDaccess(e1,e2,d) -> print_string ("in SDaccess\n" ^ jexpr e1 ^ "\n\n" ^ jexpr e2 ^ "\n");
 	(match e1 with
 	SBaccess(expr,coord,d) -> 
 		boardAccess (jexpr coord.sxc) (jexpr coord.syc) e2
