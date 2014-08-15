@@ -69,7 +69,7 @@ let get_op_return_value ops e1 e2 =
               | Geq -> relations type1 type2          
               | Or -> logic type1 type2
               | And -> logic type1 type2
-              | Dequal -> logic type1 type2
+              | Dequal -> equality type1 type2
 
         in (Datatype(t), valid)
 
