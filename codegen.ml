@@ -210,8 +210,8 @@ let rec jstmt = function
 
  | SLoop(e, s) -> 
 	(match e with
-	   SThrough(e1,e2,d) -> "for(int i=" ^ jexpr e1 ^ "; i<" ^
-			jexpr e2 ^ "; i++)" ^ jstmt s 
+	   SThrough(e1,e2,d) -> "for(int IND=" ^ jexpr e1 ^ "; IND<" ^
+			jexpr e2 ^ "; IND++)" ^ jstmt s 
 	| e -> "while (" ^ jexpr e ^ ") " ^ jstmt s)
 
  | SDecl(bgtype,expr,scope) ->
