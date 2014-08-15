@@ -4,7 +4,6 @@ open Printf
 open Semantics 
 
 
-let globals = [];;
 
 let rec jexpr = function
    SLint(l,d) -> string_of_int l
@@ -37,10 +36,7 @@ let rec jexpr = function
 
  | SCall(func,args,scope,d) -> 
 	(match Ast.string_of_expr func with
-	"sizeOf" -> (match args with
-		[a] -> sizeAccess a
-		| _ -> "Invalid sizeOf Arguments")
-	| "move" -> (match args with
+	"move" -> (match args with
 		[pc; x; y] -> "PC = " ^ jexpr pc^ ";\nPC.loc.x = " ^ jexpr x ^
 			";\nPC.loc.y = " ^ jexpr y ^ ";\n"
 		| _ -> "Invalid Move Arguments" )
@@ -48,10 +44,23 @@ let rec jexpr = function
 		[pc; x; y] -> "PC = " ^ jexpr pc^ ";\nPC.loc.x = " ^ jexpr x ^
 			";\nPC.loc.y = " ^ jexpr y ^ ";\n"
 		| _ -> "Invalid Add Arguments" )
+	| "Input" -> (match args with
+		[a] -> jexpr a ^ " = " ^ (match d with
+			Datatype(Int) -> "Integer.parseInt(input.nextLine());"
+			| Datatype(String) -> "input.nextLine();"
+			| Datatype(Float) -> "Double.parseDouble(input.nextLine());" 
+			| _ -> "Cannot Accept Input")
+		| _ -> "Invalid Input Arguments" )
+	| "Output" -> (match args with
+		[a] -> "System.out.println(" ^ jexpr a ^ ")"
+		| _ -> "Invalid Output Arguments")
+	| "EndGame" -> (match args with 
+		[a] -> "System.out.println(" ^ jexpr a ^ "); System.exit(0)" 
+		| _ -> "Invalid EndGame Arguments")
 	| _ -> "blah")
 
  | SBaccess(e1,c,d) -> "PCS.get( Crd(PCS," ^ jexpr c.sxc ^ "," ^
-	jexpr c.syc ^ ")"
+	jexpr c.syc ^ ") )"
  | SAccess(key,pos,d) -> (match jexpr key with
 	"Player" -> "Players.get(" ^ jexpr pos ^ ")"
 	| _ -> "Invalid Access" )
@@ -66,26 +75,6 @@ let rec jexpr = function
 	| _ -> "Invalid Left Dot Access" )
 		
  | SNoexpr -> ""
-
-
-and sizeAccess args = 
-	(match args with
-	SId(keyword,scope,d) -> (match keyword with
-		"Board" -> "BD_SIZE"
-		| _ -> "Invalid sizeOf Argument")
-	| SCall(func, args,scope,d) -> sizeAccessCall func
-	| SDaccess(e1,e2,d) -> (match jexpr e1 with 
-		"Player" -> (match e2 with
-			SCall(func,args,scope,d) -> sizeAccessCall func
-			| _ -> "Invalid sizeOf Player Function Argument" )
-		| _ -> "Invalid sizeOf Function Argument" )
-	| _ -> "Invalid sizeOf Argument" )
-
-and sizeAccessCall func =
-	(match Ast.string_of_expr func with 
-	"inventory" -> "Crd_SearchCt(PCS,0,0,Players.get(curPlayer))"
-	| "onBoard" -> "Crd_SearchCt_Gt(PCS,0,0,Players.get(curPlayer))"
-	| _ -> "Invalid Size Function Argument")
 
 and playerDot e2 = 
 	(match e2 with 
@@ -137,7 +126,7 @@ and boardAccess x y right =
 
 and boardFunctionDot x y func args rtexpr = 
 	(match Ast.string_of_expr func with
-	"Pieces" -> boardFunctionPieces x y args ^ 
+	"Pieces" -> (boardFunctionPieces x y args) ^ 
 		(match rtexpr with
 		SCall(func, args,scope,d) -> (match Ast.string_of_expr func with
 			"owner" -> ".owner"
@@ -207,7 +196,7 @@ let rec jstmt = function
 
  | SDecl(bgtype,expr,scope) ->
 	(match scope with
-	Global -> ignore (let gl = declare bgtype expr in gl::globals ); ""
+	Global -> ""
 	
 	| _ -> declare bgtype expr )
 
@@ -222,11 +211,10 @@ and declare bgtype expr =
 	| Datatype(Tile) -> ""
 	| Datatype(Rule) -> "" ) ^ " " ^
 	(match expr with 
-	SAssign(v,ex,sc,d) -> v ^ "= new " ^ 
-		(match bgtype with
-		Datatype(Piece) -> "Pieces(" ^ jexpr ex ^ ");" 
-		| Datatype(String) -> "String(" ^ jexpr ex ^ ");" 
-		| _ -> "")
+	SAssign(v,ex,sc,d) -> v ^ (match bgtype with
+		Datatype(Piece) -> "= new Pieces(" ^ jexpr ex ^ ");" 
+		| Datatype(String) -> "= new String(" ^ jexpr ex ^ ");" 
+		| _ -> "= " ^ jexpr ex)
 	| _ -> jexpr expr ^ ";")
 
 
@@ -250,21 +238,32 @@ and jprogSetup setup_list =
 	String.concat "" (List.map jsetup setup_list)
 
 and jprogRules rule_list =  
-	String.concat "" (List.map jrules rule_list) ^ "}"
+	String.concat "\n" (List.map jrules rule_list) 
 	
+and findGlobals play = (match play with
+	SDecl(bgtype,expr,scope) -> 
+		(match scope with
+		Global -> declare bgtype expr
+		| _ -> "" )
+	| _ -> "")  
 
 and jprogram program =
 	let (ssetup, srules, sstmt) = program in
 	let setup_func = jprogSetup ssetup
+	and globals = String.concat "\n" (List.rev(List.map findGlobals sstmt))
 	and body = String.concat "" (List.map jstmt sstmt)
 	and rule_func = jprogRules srules
 	in 
 	sprintf "public class BG {
+		Scanner input = new Scanner (System.in);
 		%s
 		public static void main(String[] args) {
 			%s
-			%s
+			while(true) {
+				%s
+			}
 		}
 		%s
-	}" (String.concat " " globals) setup_func body rule_func
+	}
+" globals setup_func body rule_func
 
