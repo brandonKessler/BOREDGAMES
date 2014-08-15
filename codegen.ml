@@ -42,7 +42,7 @@ let rec jexpr = function
 		| _ -> "Invalid Move Arguments" )
 	| "add" -> (match args with 
 		[pc; x; y] -> "PC = " ^ jexpr pc^ ";\nPC.loc.x = " ^ jexpr x ^
-			";\nPC.loc.y = " ^ jexpr y ^ ";\n"
+			";\nPC.loc.y = " ^ jexpr y 
 		| _ -> "Invalid Add Arguments" )
 	| "Input" -> (match args with
 		[a] -> jexpr a ^ " = " ^ (match d with
