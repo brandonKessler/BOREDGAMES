@@ -211,7 +211,7 @@ and boardFunctionPieces x y args =
 
 and boardFunction x y func args = 
 	(match Ast.string_of_expr func with
-	"unoccupied" -> "Crd(PCS,"^x^","^y^")==-1"
+	"unoccupied" -> "(Crd(PCS,"^x^","^y^")==-1)"
 	| "Pieces" -> boardFunctionPieces x y args
 	| _ -> "Invalid Board Function" )
 

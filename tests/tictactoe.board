@@ -57,9 +57,14 @@ rule R7: int l = 1;
 		  loop(l < 4){/*every column*/
 			winChance = true;
 			loop(m < 4){/*every row*/
-if(winChance == true && (false == (Board[(m, l)].Pieces[1].name() .=   Player.inventory().name() )) ){/*checks if the first piece on the board at j,i has the same name as the first piece in the current player's inventory*/
-					winChance = false;	
-				}
+if(Board[(m,l)].unoccupied() == false) {
+	if(winChance == true && (false == (Board[(m, l)].Pieces[1].name() .=   Player.inventory().name() )) )
+	{/*checks if the first piece on the board at j,i has the same name as the first piece in the current player's inventory*/
+		winChance = false;	
+	}
+}
+else { winChance = false;}
+				
 				m = m + 1;
 			}
 			if(winChance == true){
@@ -74,7 +79,7 @@ if(winChance == true && (false == (Board[(m, l)].Pieces[1].name() .=   Player.in
 		  int a=0; 
 		  loop(1:3)/*goes through each row*/
 		  {
-			if (Board[(n,n)].Pieces[1].name() .= Player.inventory().name()){ /*checks if the first piece on the board at location i,j has the same name as the first piece in the current player's inventory*/
+			if (Board[(n,n)].unoccupied() == false && Board[(n,n)].Pieces[1].name() .= Player.inventory().name()){ /*checks if the first piece on the board at location i,j has the same name as the first piece in the current player's inventory*/
 				a = a+1;
 			}
 			n = n + 1;
