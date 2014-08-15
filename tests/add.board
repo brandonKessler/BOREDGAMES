@@ -21,6 +21,6 @@ Play{
 int x = 5;
 int y = 5;
 add(Player[1].inventory("a2"),5,5);
-
-
+add(Player[1].inventory(), 4,4);
+add(Player.inventory(), 4,4);
 }

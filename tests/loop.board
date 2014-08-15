@@ -9,6 +9,8 @@ new Pieces("P2","b2",1,6);
 }
 Rules{
 rule r1: 
+bool b;
+b = true;
 if(Board[(x,y)].unoccupied()) {
 	Output("no");
 }
