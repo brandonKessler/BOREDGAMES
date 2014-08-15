@@ -16,5 +16,5 @@ if(i == 1){
 else{
 i = 3;
 }
- Output("done");
+ EndGame("done");
 }

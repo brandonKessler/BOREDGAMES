@@ -94,11 +94,15 @@ if(winChance == true && Board[(m, l)].Pieces(1).name() !=   CurrentPlayer().inve
 Play{
 	int q = 1;
 loop(1:3){/*displays the current board on the screen*/
+
 	Output(Board[(q,1)].Pieces(1).name() ^  Board[(q,2)].Pieces(1).name() ^ Board[(q,3)].Pieces(1).name());
          q++;
 }
+
+
 	int x;
 	int y;
+
 	Input(x);/*takes keyboard input from the user and stores it in the coordinate in*/
 	Input(y);
 	if(r3){
@@ -113,5 +117,6 @@ loop(1:3){/*displays the current board on the screen*/
 		}
 		NextPlayer;
 	}
+      
 
 }

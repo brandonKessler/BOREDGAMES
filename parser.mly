@@ -19,7 +19,7 @@
 %left AND OR
 %left EQ NEQ
 %left LT GT LEQ GEQ
-%nonassoc CAT
+%left CAT
 %left PLUS MINUS
 %left TIMES DIVIDE
 %left MINUSMINUS PLUSPLUS 

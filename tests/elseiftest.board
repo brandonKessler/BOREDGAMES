@@ -18,5 +18,5 @@ i = 4;
 }
 i = 3;
 }
- Output("done");
+ EndGame("done");
 }

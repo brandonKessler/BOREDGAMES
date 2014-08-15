@@ -13,9 +13,9 @@ rule r2: return false;;
 Play{
  int i = 0;
   i = 3;
-  i = 4;
+  i = 5;
 int j = 4;
 if(i > j){
-Output("done");
+EndGame("done");
 }
 }
