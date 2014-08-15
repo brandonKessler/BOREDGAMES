@@ -24,8 +24,8 @@ let rec jexpr = function
       		jexpr e2)
  | SCat(e1,e2,d) -> jexpr e1 ^ "+" ^ jexpr e2
 
- | SThrough(e1,e2,d) -> "for (int i=" ^ jexpr e1^ "; i<" ^
-	jexpr e2^"; i++) {\n"
+ | SThrough(e1,e2,d) -> "for (int IND=" ^ jexpr e1^ "; IND<" ^
+	jexpr e2^"; IND++) {\n"
 
  | SIncr(e,i,d) -> 
 	jexpr e ^ 
@@ -72,14 +72,34 @@ let rec jexpr = function
 	| SId(keyword,scope,d) -> (match keyword with
 		"Player" -> playerDot e2
 		| _ -> "Invalid Left Dot Access" )
-	| _ -> "Invalid Left Dot Access" )
+	| SAccess(keyword,pos,d) -> (match jexpr keyword with
+		"Player" -> playerAccessDot pos e2
+		| _ -> "")
+	| _ -> "Invalid Left Dot Access2" )
 		
  | SNoexpr -> ""
+
+and playerAccessDot plr_pos e2 = 
+	(match e2 with 
+	SCall(func,args,scope,d) -> (match Ast.string_of_expr func with
+		"name" -> "Player.get(" ^ jexpr plr_pos ^ ")"
+		| "inventory" -> "PCS.get( Crd_Plr_Pos(PCS,0,0,Players.get(" ^ 
+			jexpr plr_pos ^ "), 1 ) )"
+		| "onBoard" -> "PCS.get( Crd_Plr_Pos_Gt(PCS,0,0,Players.get(" ^
+			jexpr plr_pos ^ "), 1) )"
+		| _ -> "Invalid Player Function Access" )
+	| SAccess(keyword, pos,d) -> (match jexpr keyword with
+		"inventory" -> "PCS.get( Crd_Plr_Pos(PCS,0,0,Players.get(" ^
+			jexpr plr_pos ^ ")," ^ jexpr pos ^ ") )"
+		| "onBoard" -> "PCS.get( Crd_Plr_Pos_Gt(PCS,0,0,Players.get(" ^
+			jexpr plr_pos ^ ")," ^ jexpr pos ^ ") )"
+		| _ -> "Invalid Player Array Access" )
+	| _ -> "Invalid Player Access" )
 
 and playerDot e2 = 
 	(match e2 with 
 	SCall(func,args,scope,d) -> (match Ast.string_of_expr func with
-		"name" -> "Player.get(curPlayer);"
+		"name" -> "Player.get(curPlayer)"
 		| "inventory" -> playerDotInvFunc args 
 		| "onBoard" -> playerDotBdFunc args
 		| _ -> "Invalid Player Function Access" )
@@ -214,36 +234,37 @@ and declare bgtype expr =
 	SAssign(v,ex,sc,d) -> v ^ (match bgtype with
 		Datatype(Piece) -> "= new Pieces(" ^ jexpr ex ^ ");" 
 		| Datatype(String) -> "= new String(" ^ jexpr ex ^ ");" 
-		| _ -> "= " ^ jexpr ex)
+		| _ -> "= " ^ jexpr ex ^ ";")
 	| _ -> jexpr expr ^ ";")
 
 
 
 and jsetup = function
-   SSetbd(m) -> "new Board(" ^ string_of_int m.srows ^ "," ^ string_of_int m.scols ^ ")\n"
-  | SSetpc(pc) -> "for(int i=0; i<" ^ string_of_int pc.snum^ "; i++)\n" ^ 
+   SSetbd(m) -> "rows = " ^ string_of_int m.srows ^ "; cols = " 
+	^ string_of_int m.scols ^ ";"
+  | SSetpc(pc) -> "for(int i=0; i<" ^ string_of_int pc.snum^ "; i++) {\n" ^ 
 	"Pieces P = new Pieces(" ^ pc.sowner ^ "," ^ pc.sname ^ "," ^ 
 	string_of_int pc.sptval ^ "," ^ jexpr pc.scloc.sxc ^ "," ^ 
-	jexpr pc.scloc.syc ^ ");\nPCS.add(P);\n}"
- | SSetplr(plr) -> "PLR.add(" ^ plr.splrname ^ ");"
- | SStmt(s) -> jstmt s ^ "\n"
+	jexpr pc.scloc.syc ^ ");\nPCS.add(P);}"
+ | SSetplr(plr) -> "Players.add(" ^ plr.splrname ^ ");"
+ | SStmt(s) -> jstmt s
 
 
 and jrules r = (match r with
 	SRules_Decl(rule,d) ->  
 		"static void " ^ rule.srname ^ "() {\n" ^ 
-		String.concat "" (List.map jstmt rule.srbody) ^ "\n}" )
+		String.concat "\n" (List.rev(List.map jstmt rule.srbody)) ^ "}" )
 
 and jprogSetup setup_list = 
-	String.concat "" (List.map jsetup setup_list)
+	String.concat "\n" (List.rev(List.map jsetup setup_list))
 
 and jprogRules rule_list =  
-	String.concat "\n" (List.map jrules rule_list) 
+	String.concat "\n" (List.rev(List.map jrules rule_list)) 
 	
 and findGlobals play = (match play with
 	SDecl(bgtype,expr,scope) -> 
 		(match scope with
-		Global -> declare bgtype expr
+		Global -> "public static " ^ declare bgtype expr
 		| _ -> "" )
 	| _ -> "")  
 
@@ -251,19 +272,35 @@ and jprogram program =
 	let (ssetup, srules, sstmt) = program in
 	let setup_func = jprogSetup ssetup
 	and globals = String.concat "\n" (List.rev(List.map findGlobals sstmt))
-	and body = String.concat "" (List.map jstmt sstmt)
+	and body = String.concat "" (List.rev(List.map jstmt sstmt))
 	and rule_func = jprogRules srules
 	in 
-	sprintf "public class BG {
-		Scanner input = new Scanner (System.in);
-		%s
-		public static void main(String[] args) {
-			%s
-			while(true) {
-				%s
-			}
-		}
-		%s
-	}
-" globals setup_func body rule_func
+	sprintf 
+"public class BG {
+	
+Scanner input = new Scanner (System.in);
+public LinkedList<String> Players = new LinkedList<String>();
+public LinkedList<Pieces> PCS = new LinkedList<Pieces>();
+public static int curPlayer = 0;
+public static int rows;
+public static int cols;
+Pieces PC;
+static void setup() {
+%s
+}
+
+%s
+
+public static void main(String[] args) {
+setup();	
+while(true) {
+%s
+}
+
+}
+
+%s
+
+}
+" setup_func globals body rule_func
 
