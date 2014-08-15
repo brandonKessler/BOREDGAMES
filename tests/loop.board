@@ -13,6 +13,7 @@ if(Board[(x,y)].unoccupied()) {
 	Output("no");
 }
 Output("yes");
+return true;;
 
 }
 Play{
