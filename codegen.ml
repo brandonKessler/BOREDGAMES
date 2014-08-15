@@ -70,7 +70,8 @@ let rec jexpr = function
 	(match e1 with
 	SBaccess(expr,coord,d) -> (match jexpr expr with
 		"Player" -> playerDot e2
-		| "Board" -> boardAccess (jexpr coord.sxc) (jexpr coord.syc) e2)
+		| "Board" -> boardAccess (jexpr coord.sxc) (jexpr coord.syc) e2
+		| _ -> "Invalid Board Access")
 	| SId(keyword,scope,d) -> (match keyword with
 		"Player" -> playerDot e2
 		| _ -> "Invalid Left Dot Access" )
