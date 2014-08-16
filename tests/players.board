@@ -1,0 +1,38 @@
+Setup{
+new Board(10,10);
+new Player("P1");
+new Player("P2");
+new Pieces("P1","a1",2,1);
+new Pieces("P1","a2",1,1);
+new Pieces("P2","b1",2,1);
+new Pieces("P2","b2",1,1);
+}
+Rules{
+rule r1: 
+bool b;
+b = true;
+if(Board[(x,y)].unoccupied()) {
+	Output("no");
+	Output(x);
+}
+Output("yes");
+return true;;
+
+}
+Play{
+int x = 5;
+int y = 5;
+
+/*check search for piece name*/
+piece pc;
+pc = Board[(x,y)].Pieces("a1");
+/*check search for piece name and owner*/
+pc = Board[(x,y)].Pieces("P1","a1");
+
+Output("Board pieces:");
+if(Board[(x,y)].Pieces[1].name() == "a1") {
+	y=10;
+}
+x=20;	
+y=20;
+}

@@ -1,0 +1,40 @@
+Setup{
+new Board(10,10);
+new Player("P1");
+new Player("P2");
+new Pieces("P1","a1",2,1);
+new Pieces("P1","a2",1,6);
+new Pieces("P2","b1",2,1);
+new Pieces("P2","b2",1,6);
+}
+Rules{
+rule r1: 
+bool b;
+b = true;
+if(Board[(x,y)].unoccupied()) {
+	Output("no");
+}
+Output("yes");
+return true;;
+
+}
+Play{
+int x = 5;
+int y = 5;
+
+
+loop(x<10) {
+	loop(y<10) {
+	Output("Board pieces:");
+	if(Board[(x,y)].Pieces[1].name() .= "a1") {
+		y=10;
+	}
+	}
+}
+
+NextPlayer;
+if(CurrentPlayer().name() .= "P1") {
+NextPlayer;
+}
+}
+

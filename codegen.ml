@@ -74,7 +74,16 @@ let rec jexpr = function
 		| _ -> "Invalid Board Access")
 	| SId(keyword,scope,d) -> (match keyword with
 		"Player" -> playerDot e2
-		| _ -> "Invalid Left Dot Access" )
+		| _ -> keyword ^ 
+			(match e2 with
+			SCall(func, args,scope,d) -> (match Ast.string_of_expr func with
+				"owner" -> ".owner"
+				| "name" -> ".name"
+				| "point" -> ".val"
+				| "locationx" -> ".loc.x"
+				| "locationy" -> ".loc.y"
+				| _ -> "Invalid Pieces field")
+			| _ -> "Invalid Pieces Access") )
 	| SAccess(keyword,pos,d) -> (match jexpr keyword with
 		"Player" -> playerAccessDot pos e2
 		| _ -> "")
@@ -100,6 +109,9 @@ let rec jexpr = function
 			 
 		| _ -> "Invalid Board Dot Argument" )
 		
+	| SCall(func,args,scope,d) -> (match Ast.string_of_expr func with
+		"CurrentPlayer" -> "Players.get(curPlayer)"
+		| _ -> "")
 	| _ -> "Invalid Left Dot Access2" )
 		
  | SNoexpr -> ""
@@ -152,8 +164,8 @@ and playerDotInvFunc args  =
 
 and playerDotBdFunc args = 
 	(match args with
-	[pc_n] -> "PCS.get( Pcn(PCS," ^ jexpr pc_n ^") )"
-	| [pl_n; pc_n] -> "PCS.get( Plr_Pcn(PCS," ^ jexpr pl_n ^ "," ^ jexpr pc_n ^") )"
+	[pc_n] -> "PCS.get( Crd_Pcn_Gt(PCS,0,0," ^ jexpr pc_n ^") )"
+	| [pl_n; pc_n] -> "PCS.get( Crd_Plr_Pcn_Gt(PCS,0,0," ^ jexpr pl_n ^ "," ^ jexpr pc_n ^") )"
 	| [pl_n; pc_n; x;y] -> "PCS.get( Crd_Plr_Pcn(PCS," ^ jexpr x ^ "," ^ 
 		jexpr y ^ "," ^ jexpr pl_n ^ "," ^ jexpr pc_n ^") )"
 	| _ ->  "Invalid Player Access Function") 
@@ -448,6 +460,27 @@ static int Pcn (LinkedList<Pieces> plist, String pcn) {
 		if (t.name.equals(pcn)) {
 			return i;
 		}
+	}
+	return -1;
+}
+static int Crd_Pcn_Gt (LinkedList<Pieces> plist, int x, int y, String pn) {
+	Point test = new Point(x,y);
+	for (int i=0; i<plist.size(); i++){
+		Pieces t = plist.get(i);
+		if (t.loc.x > test.x && t.loc.y > test.y && t.name.equals(pn)) {
+			return i;
+		}
+	}
+	return -1;
+}
+static int Crd_Plr_Pcn_Gt (LinkedList<Pieces> plist, int x, int y,String plr,String pn) {
+	Point test = new Point(x,y);
+	for (int i=0; i<plist.size(); i++){
+		Pieces t = plist.get(i);
+		if (t.loc.x>test.x && t.loc.y>test.y && t.owner.equals(plr) && t.name.equals(pn)) {
+			return i;
+		}
+
 	}
 	return -1;
 }
