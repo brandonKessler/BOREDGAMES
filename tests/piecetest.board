@@ -10,4 +10,6 @@ Rules{
 }
 Play{
  EndGame("done");
+ string plr;
+plr = CurrentPlayer().name();
 }

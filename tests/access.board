@@ -33,6 +33,8 @@ str = Player.onBoard("a1").name();
 str = pc.owner();
 pc = Player.onBoard("P1","a1");
 
+pc = Player.onBoard(2);
+
 Output("Board pieces:");
 if(Board[(x,y)].Pieces[1].name() == "a1") {
 	y=10;
